@@ -2,7 +2,7 @@
 .gradle/
 build/
 **/build/
-gradle-wrapper.jar
+!gradle/wrapper/gradle-wrapper.jar
 
 # Android Studio
 .idea/
