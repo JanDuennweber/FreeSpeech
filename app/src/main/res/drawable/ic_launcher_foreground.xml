@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Microphone striped with the John Marcotte Free Speech Flag colours.
+  Flag colours derive from the AACS encryption key as RGB triplets:
+    09 F9 11 → #09F911  lime
+    02 9D 74 → #029D74  jade teal
+    E3 5B D8 → #E35BD8  hot magenta
+    41 56 C5 → #4156C5  cobalt
+    63 56 88 → #635688  amethyst
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- Capsule (pill shape) clipped stripe group -->
+    <group>
+        <!-- Clip path: vertical capsule, width 18dp, height 40dp, centred at (54,41) -->
+        <clip-path android:pathData="M 45,30 A 9,9 0 0 1 63,30 L 63,52 A 9,9 0 0 1 45,52 Z"/>
+        <!-- Flag stripes top → bottom -->
+        <path android:fillColor="#09F911" android:pathData="M36,21 L72,21 L72,29 L36,29 Z"/>
+        <path android:fillColor="#029D74" android:pathData="M36,29 L72,29 L72,37 L36,37 Z"/>
+        <path android:fillColor="#E35BD8" android:pathData="M36,37 L72,37 L72,45 L36,45 Z"/>
+        <path android:fillColor="#4156C5" android:pathData="M36,45 L72,45 L72,53 L36,53 Z"/>
+        <path android:fillColor="#635688" android:pathData="M36,53 L72,53 L72,61 L36,61 Z"/>
+    </group>
+
+    <!-- Capsule rim (subtle highlight) -->
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#26FFFFFF"
+        android:strokeWidth="0.75"
+        android:pathData="M 45,30 A 9,9 0 0 1 63,30 L 63,52 A 9,9 0 0 1 45,52 Z"/>
+
+    <!-- Stand arch -->
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#D8D8EE"
+        android:strokeWidth="3.5"
+        android:strokeLineCap="round"
+        android:pathData="M 36,59 Q 36,75 54,75 Q 72,75 72,59"/>
+
+    <!-- Stem -->
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#D8D8EE"
+        android:strokeWidth="3.5"
+        android:strokeLineCap="round"
+        android:pathData="M 54,75 L 54,85"/>
+
+    <!-- Base -->
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#D8D8EE"
+        android:strokeWidth="3.5"
+        android:strokeLineCap="round"
+        android:pathData="M 40,85 L 68,85"/>
+
+</vector>
