@@ -22,15 +22,90 @@ You control which Whisper server is used. Self-host one on your own hardware, us
 
 ## Setting up a Whisper server
 
-Any server that speaks the OpenAI `/v1/audio/transcriptions` API format works. The simplest self-hosted option:
+Any server that speaks the OpenAI `/v1/audio/transcriptions` API format works. This repo includes `whisper_server.py` — a minimal Flask server using [faster-whisper](https://github.com/guillaumekln/faster-whisper).
+
+### Install dependencies
 
 ```bash
 pip install faster-whisper flask
 ```
 
-Then run a minimal server (or use [faster-whisper-server](https://github.com/fedirz/faster-whisper-server), [LocalAI](https://github.com/mudler/LocalAI), or [whisper.cpp](https://github.com/ggerganov/whisper.cpp) with its built-in server).
+### Run once (foreground)
 
-The FreeSpeech settings screen lets you enter the URL, e.g. `http://192.168.1.10:8080/v1/audio/transcriptions`.
+```bash
+python3 whisper_server.py
+```
+
+On first launch it downloads the `small` Whisper model (~500 MB). Once you see `* Running on http://0.0.0.0:8080` it is ready.
+
+### Run permanently (background, survives logout)
+
+```bash
+nohup python3 whisper_server.py > whisper.log 2>&1 &
+tail -f whisper.log   # watch startup, Ctrl+C to stop watching
+```
+
+### Run as a systemd service (starts on boot)
+
+```bash
+sudo nano /etc/systemd/system/whisper.service
+```
+
+Paste:
+
+```ini
+[Unit]
+Description=Whisper transcription server
+After=network.target
+
+[Service]
+User=YOUR_USERNAME
+WorkingDirectory=/path/to/FreeSpeech
+ExecStart=python3 /path/to/FreeSpeech/whisper_server.py
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
+```
+
+Then enable it:
+
+```bash
+sudo systemctl daemon-reload
+sudo systemctl enable --now whisper
+sudo systemctl status whisper
+```
+
+### Configuration
+
+Edit `whisper_server.py` to tune:
+
+| Setting | Default | Options |
+|---|---|---|
+| Model size | `"small"` | `"tiny"`, `"base"`, `"medium"`, `"large"` |
+| Language | `"de"` (German) | Any BCP-47 code, or remove for auto-detect |
+| Device | `"cpu"` | `"cuda"` if you have an Nvidia GPU |
+
+The FreeSpeech settings screen lets you enter the server URL, e.g. `http://192.168.1.10:8080/v1/audio/transcriptions`.
+
+### Accessing the server from outside your network
+
+If the Whisper server is on a private network, you can expose it through a DMZ or jump host using an SSH reverse tunnel:
+
+```bash
+# Run this on the Whisper server — forwards DMZ port 8081 back to local port 8080
+ssh -N -R 8081:localhost:8080 user@your-dmz-server
+```
+
+To keep the tunnel alive automatically, use `autossh`:
+
+```bash
+sudo apt install autossh   # or dnf install autossh
+autossh -M 9090 -N -R 8081:localhost:8080 user@your-dmz-server
+```
+
+Or as a systemd service (same pattern as above, replace `ExecStart` with the `autossh` command).
 
 ## Installation
 
