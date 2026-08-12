@@ -1,10 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Allow HTTP to local/LAN addresses for self-hosted Whisper servers -->
+<!-- Allow cleartext HTTP to any host — the Whisper server is self-hosted on a
+     private/DMZ address configured by the user; enforcing TLS here would break
+     typical self-hosted setups without a certificate. -->
 <network-security-config>
-    <base-config cleartextTrafficPermitted="false" />
-    <domain-config cleartextTrafficPermitted="true">
-        <domain includeSubdomains="true">localhost</domain>
-        <domain includeSubdomains="true">10.0.2.2</domain>
-        <!-- Add your local Whisper server IP here if needed, e.g. 192.168.x.x -->
-    </domain-config>
+    <base-config cleartextTrafficPermitted="true" />
 </network-security-config>

@@ -6,13 +6,47 @@ FreeSpeech gives users of privacy-respecting Android ROMs — Murena /e/OS, Grap
 
 ## How it works
 
-FreeSpeech registers itself as an Android `RecognitionService` — the standard system interface that Android Auto queries for speech recognition. When the microphone is pressed in Android Auto, the system routes the audio to FreeSpeech, which:
+FreeSpeech registers itself as:
+
+- An Android `RecognitionService` — handles keyboard microphone and speech-to-text in any app
+- A `VoiceInteractionService` — handles the system digital assistant (long-press home / power button)
+
+When invoked, FreeSpeech:
 
 1. Records audio from the microphone
 2. Sends it to a [Whisper](https://github.com/openai/whisper)-compatible HTTP endpoint of your choice
-3. Returns the transcription to Android Auto
+3. Returns the transcription
 
 You control which Whisper server is used. Self-host one on your own hardware, use a server on your local network, or point it at any OpenAI-compatible API. Your voice never reaches Google.
+
+## Known limitations — Android Auto mic button
+
+**The car microphone button in Android Auto does not currently invoke FreeSpeech** on gearhead 14+ paired with a microG-based ROM. This is a gearhead compatibility issue, not a FreeSpeech bug.
+
+### Root cause
+
+When the mic button is pressed on the car display, gearhead's `DemandController` checks for Google Assistant via `com.google.android.googlequicksearchbox` directly — it does not consult the Android `ASSISTANT` role or the system `VoiceInteractionService`. If the microG stub for `googlequicksearchbox` does not implement the Google Assistant voice protocol (which current microG versions do not), gearhead logs:
+
+```
+E GH.DemandController: Assistant is unavailable due to: 0
+```
+
+…and shows "Sprachkommandos sind derzeit nicht verfügbar" without ever invoking FreeSpeech.
+
+### What does work
+
+| Invocation method | Works? |
+|---|---|
+| Car display mic button (Android Auto) | ✗ gearhead bypasses VoiceInteractionService |
+| Long-press power / home button on phone | ✓ invokes FreeSpeech as digital assistant |
+| Keyboard microphone (any text field) | ✓ invokes FreeSpeech as RecognitionService |
+| Voice input in other apps | ✓ |
+
+### Conditions under which the car mic button would work
+
+- **Older gearhead versions** (roughly pre-12.x) had a proper fallback to the system `VoiceInteractionService` when Google Assistant was unavailable. However, recent car head unit firmware enforces a minimum gearhead version via "Communication error 8 / security checks not passed", so downgrading is not always possible.
+- **A microG update** that implements the Google Assistant voice interaction protocol for `googlequicksearchbox` would unblock this without any changes to FreeSpeech.
+- If you get the car mic button working on any device/version combination, please open an issue and share your gearhead version and logcat output.
 
 ## Requirements
 
@@ -94,15 +128,15 @@ The FreeSpeech settings screen lets you enter the server URL, e.g. `http://192.1
 If the Whisper server is on a private network, you can expose it through a DMZ or jump host using an SSH reverse tunnel:
 
 ```bash
-# Run this on the Whisper server — forwards DMZ port 8081 back to local port 8080
-ssh -N -R 8081:localhost:8080 user@your-dmz-server
+# Run this on the Whisper server — requires GatewayPorts yes in sshd_config on the DMZ host
+ssh -N -R 8082:localhost:8080 user@your-dmz-server
 ```
 
 To keep the tunnel alive automatically, use `autossh`:
 
 ```bash
 sudo apt install autossh   # or dnf install autossh
-autossh -M 9090 -N -R 8081:localhost:8080 user@your-dmz-server
+autossh -M 9090 -N -R 8082:localhost:8080 user@your-dmz-server
 ```
 
 Or as a systemd service (same pattern as above, replace `ExecStart` with the `autossh` command).
@@ -126,21 +160,24 @@ cd freespeech
 adb install app/build/outputs/apk/debug/app-debug.apk
 ```
 
-### 3. Set FreeSpeech as your speech recognition engine
+### 3. Set FreeSpeech as your speech recognition engine and digital assistant
 
 On the phone:
 
 **Settings → Apps → Default apps → Speech recognition → FreeSpeech**
 
-(Path may vary slightly by /e/OS version.)
+**Settings → Apps → Default apps → Digital assistant → FreeSpeech**
+
+(Paths may vary slightly by /e/OS version. Look for "Spracheingabe" and "Digitaler Assistent" on German-language systems.)
 
 ### 4. Configure the Whisper endpoint
 
 Open the FreeSpeech app, enter your server URL, tap **Save**.
 
-### 5. Test in Android Auto
+### 5. Test
 
-Connect to your car and press the microphone button. FreeSpeech will record your voice and return the transcription.
+- **Phone button**: long-press the power or home button — FreeSpeech overlay should appear and start listening
+- **Keyboard mic**: tap the microphone icon in any text field
 
 ## Notes for Murena /e/OS users
 
@@ -148,7 +185,7 @@ Android Auto itself (the `gearhead` package) does not come pre-installed on /e/O
 
 ## Roadmap
 
-- [ ] Confirm Android Auto mic button integration end-to-end
+- [ ] Android Auto car mic button — blocked by gearhead + microG compatibility (see Known limitations)
 - [ ] NLU layer: route transcriptions to contacts (calls), media apps, navigation
 - [ ] WhatsApp message dictation via Accessibility Service
 - [ ] On-device Whisper option (whisper.cpp, no server needed)
@@ -160,7 +197,13 @@ FreeSpeech sends audio only to the endpoint you configure. No telemetry, no anal
 
 ## Contributing
 
-This project is in early development. If you get the mic button working in Android Auto on your device, please open an issue and share your logcat output — every device variant helps.
+This project is in early development. If you get the car mic button working on any device/ROM/gearhead version combination, please open an issue and share:
+- Your ROM and version
+- gearhead version (`adb shell dumpsys package com.google.android.projection.gearhead | grep versionName`)
+- googlequicksearchbox version (`adb shell dumpsys package com.google.android.googlequicksearchbox | grep versionName`)
+- Relevant logcat around the mic button press
+
+Every data point helps narrow down where the fallback path still exists.
 
 ## Licence
 
