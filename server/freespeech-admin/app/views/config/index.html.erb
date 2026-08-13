@@ -63,6 +63,31 @@
         <div class="hint">Gemini: free key at ai.google.dev &nbsp;|&nbsp; OpenAI: platform.openai.com/api-keys &nbsp;|&nbsp; Ollama: leave blank</div>
       </div>
     </div>
+
+    <%# Grammar correction — Ollama/qwen only %>
+    <div style="margin-top:1rem;padding-top:1rem;border-top:1px solid #dee2e6">
+      <div class="field" style="margin-bottom:.5rem">
+        <label style="display:flex;align-items:center;gap:.5rem;cursor:pointer">
+          <%= hidden_field_tag "settings[grammar_correct]", "0" %>
+          <%= check_box_tag "settings[grammar_correct]", "1",
+                @settings["grammar_correct"] != "0",
+                style: "width:1rem;height:1rem;cursor:pointer" %>
+          <span><strong>Grammar correction</strong> — fix Ollama/qwen response grammar via
+            <a href="https://languagetool.org" target="_blank">LanguageTool</a>
+            before sending to users (enabled by default)</span>
+        </label>
+      </div>
+      <div class="field">
+        <%= label_tag "settings[languagetool_url]", "LanguageTool URL (optional)" %>
+        <%= text_field_tag "settings[languagetool_url]", @settings["languagetool_url"],
+              placeholder: "Leave blank for free public API (api.languagetool.org)" %>
+        <div class="hint">
+          Only needed if you run a
+          <a href="https://github.com/languagetool-org/languagetool#docker" target="_blank">self-hosted LanguageTool instance</a>
+          (e.g. <code>http://localhost:8010</code>). The free public API has a 20 req/min limit.
+        </div>
+      </div>
+    </div>
   </div>
 
   <%# ── Log Server ─────────────────────────────────────────────────────────── %>

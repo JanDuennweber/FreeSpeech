@@ -43,6 +43,8 @@ defaults = {
   "ai_api_key"          => "",
   "ai_base_url"         => "http://localhost:11434",
   "ai_model"            => "qwen2.5:7b",
+  "grammar_correct"     => "1",   # correct Ollama/qwen message grammar via LanguageTool
+  "languagetool_url"    => "",    # blank = use free public API at api.languagetool.org
 
   "log_jsonl_path"      => "/var/log/freespeech/freespeech_commands.jsonl",
   "log_audio_dir"       => "/var/log/freespeech/audio",

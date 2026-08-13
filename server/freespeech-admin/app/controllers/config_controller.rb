@@ -10,6 +10,8 @@ class ConfigController < ApplicationController
     ai_api_key
     ai_base_url
     ai_model
+    grammar_correct
+    languagetool_url
     log_jsonl_path
     log_audio_dir
     log_max_entries

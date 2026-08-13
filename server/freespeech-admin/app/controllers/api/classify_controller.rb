@@ -50,6 +50,13 @@ module Api
         result = engine == "anthropic" ?
                    call_anthropic(base_url.chomp("/"), api_key, model, prompt) :
                    call_openai_compat(base_url.chomp("/"), api_key, model, prompt)
+
+        # Grammar-correct the spoken confirmation message when using Ollama/qwen,
+        # since local models occasionally produce grammatically broken output.
+        if engine == "ollama" && Setting["grammar_correct"] != "0" && result[:message].present?
+          result[:message] = correct_grammar(result[:message])
+        end
+
         result[:ai] = engine
         render json: result
       rescue => e
@@ -132,6 +139,46 @@ module Api
         message:  obj["message"].to_s.presence }
     rescue JSON::ParserError => e
       raise "bad AI JSON (#{e.message}): #{text.first(200)}"
+    end
+
+    # ── Grammar correction via LanguageTool ────────────────────────────────────
+    # Uses the LanguageTool REST API (/v2/check) to fix grammar/spelling in the
+    # short confirmation message produced by Ollama/qwen, which often has minor
+    # grammatical errors. Falls back to the original text on any failure.
+
+    def correct_grammar(text)
+      lt_base = Setting["languagetool_url"].presence || "https://api.languagetool.org"
+      uri     = URI("#{lt_base.chomp('/')}/v2/check")
+
+      http              = Net::HTTP.new(uri.host, uri.port)
+      http.use_ssl      = uri.scheme == "https"
+      http.open_timeout = 5
+      http.read_timeout = 8
+
+      req      = Net::HTTP::Post.new(uri.request_uri,
+                   "Content-Type" => "application/x-www-form-urlencoded")
+      req.body = URI.encode_www_form(text: text, language: "auto")
+
+      resp = http.request(req)
+      unless resp.is_a?(Net::HTTPSuccess)
+        Rails.logger.warn "LanguageTool #{resp.code} — skipping grammar correction"
+        return text
+      end
+
+      matches = JSON.parse(resp.body)["matches"] || []
+      return text if matches.empty?
+
+      # Apply replacements from right to left so earlier offsets stay valid.
+      corrected = text.dup
+      matches.sort_by { |m| -m["offset"] }.each do |match|
+        next if match["replacements"].empty?
+        corrected[match["offset"], match["length"]] = match["replacements"].first["value"]
+      end
+      Rails.logger.debug "Grammar corrected: #{text.inspect} → #{corrected.inspect}"
+      corrected
+    rescue => e
+      Rails.logger.warn "LanguageTool grammar correction failed: #{e.message}"
+      text   # original message is always the safe fallback
     end
 
     # ── Prompt (identical wording to AiClassifier.kt) ─────────────────────────
