@@ -234,10 +234,21 @@
 <body>
 
 <header>
-  <div class="brand">🎤 Free<span>Speech</span> Admin</div>
+  <div class="brand">🎤 Free<span>Speech</span> Console</div>
   <nav>
-    <a href="<%= config_path %>"  class="<%= 'active' if active_tab == :config  %>">⚙ Config</a>
-    <a href="<%= history_path %>" class="<%= 'active' if active_tab == :history %>">📋 History</a>
+    <% if admin? %>
+      <a href="<%= config_path %>"       class="<%= 'active' if active_tab == :config  %>">⚙ Config</a>
+      <a href="<%= history_path %>"      class="<%= 'active' if active_tab == :history %>">📋 History</a>
+      <a href="<%= admin_users_path %>"  class="<%= 'active' if controller_name == 'users' %>">👥 Users</a>
+    <% end %>
+    <% if logged_in? %>
+      <a href="<%= profile_path %>" class="<%= 'active' if active_tab == :profile %>">👤 My Account</a>
+      <%= button_to "Sign out", logout_path, method: :delete,
+            style: "background:transparent;border:none;color:#cbd5e1;cursor:pointer;font-size:.85rem;padding:.4rem .9rem" %>
+    <% else %>
+      <a href="<%= login_path %>"    class="<%= 'active' if controller_name == 'sessions' %>">Sign in</a>
+      <a href="<%= register_path %>" class="<%= 'active' if controller_name == 'registrations' %>">Register</a>
+    <% end %>
   </nav>
 </header>
 

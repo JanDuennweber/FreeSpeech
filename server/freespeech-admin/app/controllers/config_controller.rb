@@ -1,5 +1,7 @@
 class ConfigController < ApplicationController
+  before_action :require_admin, except: [:api]
   skip_before_action :verify_authenticity_token, only: [:api]
+  # /api/config is intentionally public — no sensitive data exposed (api_key omitted).
 
   SETTING_KEYS = %w[
     whisper_url
@@ -12,6 +14,12 @@ class ConfigController < ApplicationController
     log_audio_dir
     log_max_entries
     log_max_wavs
+    smtp_host
+    smtp_port
+    smtp_user
+    smtp_password
+    smtp_from
+    app_host
   ].freeze
 
   def index

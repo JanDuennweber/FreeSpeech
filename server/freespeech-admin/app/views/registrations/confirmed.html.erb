@@ -1,0 +1,25 @@
+<% user = local_assigns[:user] || current_user %>
+<div style="max-width:520px;margin:3rem auto;text-align:center">
+  <div style="font-size:3rem;margin-bottom:1rem">🎉</div>
+  <h2 style="margin-bottom:.75rem">Account confirmed!</h2>
+  <p style="color:var(--muted);margin-bottom:1.5rem">
+    Welcome, <strong><%= user.email %></strong>.<br>
+    Copy your API token into the FreeSpeech app settings to enable server-side AI.
+  </p>
+
+  <div class="card" style="text-align:left">
+    <div class="card-title">Your API Token</div>
+    <p style="font-family:monospace;font-size:.9rem;word-break:break-all;
+              background:#f1f3f5;padding:.75rem;border-radius:5px;margin-bottom:.75rem">
+      <%= user.api_token %>
+    </p>
+    <p style="font-size:.82rem;color:var(--muted)">
+      In FreeSpeech Settings → <em>FreeSpeech Console</em>, paste the Console URL and this token.<br>
+      You can regenerate the token anytime from your profile page.
+    </p>
+  </div>
+
+  <div style="margin-top:1.5rem">
+    <%= link_to "Go to my profile →", profile_path, class: "btn btn-primary" %>
+  </div>
+</div>

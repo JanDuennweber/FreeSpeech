@@ -49,6 +49,19 @@ class SettingsActivity : AppCompatActivity() {
         val logUrlField = findViewById<EditText>(R.id.log_url)
         logUrlField.setText(prefs.getString("log_url", ""))
 
+        // ── FreeSpeech Console ─────────────────────────────────────────────────
+
+        val consoleUrlField = findViewById<EditText>(R.id.console_url)
+        val userTokenField  = findViewById<EditText>(R.id.user_token)
+        val consoleNotice   = findViewById<TextView>(R.id.console_active_notice)
+
+        val savedConsoleUrl = prefs.getString("console_url", "").orEmpty()
+        consoleUrlField.setText(savedConsoleUrl)
+        userTokenField.setText(prefs.getString("user_token", ""))
+
+        // Show green notice when console is already configured.
+        consoleNotice.visibility = if (savedConsoleUrl.isNotBlank()) View.VISIBLE else View.GONE
+
         // ── App spinners ───────────────────────────────────────────────────────
 
         musicOptions     = AppCandidates.forCategory(this, VoiceCategory.MUSIC)
@@ -90,9 +103,14 @@ class SettingsActivity : AppCompatActivity() {
                 .tag
             LocaleHelper.apply(selectedTag)
 
+            val newConsoleUrl = consoleUrlField.text.toString().trim()
+            consoleNotice.visibility = if (newConsoleUrl.isNotBlank()) View.VISIBLE else View.GONE
+
             val edit = prefs.edit()
-                .putString("whisper_url", urlField.text.toString().trim())
-                .putString("log_url",     logUrlField.text.toString().trim())
+                .putString("whisper_url",  urlField.text.toString().trim())
+                .putString("log_url",      logUrlField.text.toString().trim())
+                .putString("console_url",  newConsoleUrl)
+                .putString("user_token",   userTokenField.text.toString().trim())
                 .putString(VoiceCategory.MUSIC.prefKey,      selectedPkg(R.id.spinner_music,     musicOptions))
                 .putString(VoiceCategory.WEATHER.prefKey,    selectedPkg(R.id.spinner_weather,   weatherOptions))
                 .putString(VoiceCategory.NAVIGATION.prefKey, selectedPkg(R.id.spinner_nav,       navOptions))

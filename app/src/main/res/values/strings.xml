@@ -54,6 +54,16 @@
     <string name="wake_notification_title">FreeSpeech — Wake word active</string>
     <string name="wake_notification_text">Listening for \"%1$s\"…</string>
     <string name="wake_notification_stop">Stop</string>
+    <!-- FreeSpeech Console -->
+    <string name="settings_console_title">FreeSpeech Console</string>
+    <string name="settings_console_desc">Connect to a FreeSpeech Console server to use server-side AI classification. Anonymous users get Ollama; registered users with a Gemini key get their personal AI engine.</string>
+    <string name="settings_console_url_label">Console URL:</string>
+    <string name="settings_console_url_hint">http://your-server:3001</string>
+    <string name="settings_console_token_label">Your API token (optional):</string>
+    <string name="settings_console_token_hint">Paste token from your Console profile</string>
+    <string name="settings_console_token_desc">Leave blank to use the console anonymously (Ollama). Register at the Console URL to get a personal token.</string>
+    <string name="settings_console_active_notice">✓ Server-side AI active — requests go to the FreeSpeech Console. Local AI settings are not used.</string>
+
     <string name="wake_trigger_channel">Wake word trigger</string>
     <string name="wake_trigger_title">FreeSpeech heard you!</string>
     <string name="wake_trigger_text">Tap to open FreeSpeech and speak your command.</string>

@@ -53,6 +53,16 @@
     <string name="wake_notification_title">FreeSpeech — Aktivierungswort aktiv</string>
     <string name="wake_notification_text">Warte auf \"%1$s\"…</string>
     <string name="wake_notification_stop">Stopp</string>
+    <!-- FreeSpeech Konsole -->
+    <string name="settings_console_title">FreeSpeech Konsole</string>
+    <string name="settings_console_desc">Verbinden Sie sich mit einem FreeSpeech-Konsole-Server für serverseitige KI-Klassifizierung. Anonyme Nutzer erhalten Ollama; registrierte Nutzer mit Gemini-Schlüssel ihren persönlichen KI-Dienst.</string>
+    <string name="settings_console_url_label">Konsolen-URL:</string>
+    <string name="settings_console_url_hint">http://ihr-server:3001</string>
+    <string name="settings_console_token_label">Ihr API-Token (optional):</string>
+    <string name="settings_console_token_hint">Token aus Ihrem Konsolen-Profil einfügen</string>
+    <string name="settings_console_token_desc">Leer lassen für anonyme Nutzung (Ollama). Registrieren Sie sich auf der Konsole, um einen persönlichen Token zu erhalten.</string>
+    <string name="settings_console_active_notice">✓ Serverseitige KI aktiv — Anfragen gehen an die FreeSpeech-Konsole. Lokale KI-Einstellungen werden nicht verwendet.</string>
+
     <string name="wake_trigger_channel">Aktivierungswort-Auslöser</string>
     <string name="wake_trigger_title">FreeSpeech hat Sie gehört!</string>
     <string name="wake_trigger_text">Tippen, um FreeSpeech zu öffnen und Ihren Befehl zu sprechen.</string>

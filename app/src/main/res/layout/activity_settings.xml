@@ -299,6 +299,79 @@
             android:layout_marginTop="16dp"
             android:layout_marginBottom="24dp" />
 
+        <!-- ── FreeSpeech Console ─────────────────────────────────────────────── -->
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/settings_console_title"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="4dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/settings_console_desc"
+            android:textSize="12sp"
+            android:layout_marginBottom="16dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/settings_console_url_label"
+            android:textStyle="bold"
+            android:layout_marginBottom="4dp" />
+
+        <EditText
+            android:id="@+id/console_url"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="textUri"
+            android:hint="@string/settings_console_url_hint"
+            android:layout_marginBottom="16dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/settings_console_token_label"
+            android:textStyle="bold"
+            android:layout_marginBottom="4dp" />
+
+        <EditText
+            android:id="@+id/user_token"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="textVisiblePassword"
+            android:hint="@string/settings_console_token_hint"
+            android:layout_marginBottom="4dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/settings_console_token_desc"
+            android:textSize="12sp"
+            android:layout_marginBottom="16dp" />
+
+        <!-- Console-active notice (shown at runtime via SettingsActivity) -->
+        <TextView
+            android:id="@+id/console_active_notice"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/settings_console_active_notice"
+            android:textSize="12sp"
+            android:background="#E8F5E9"
+            android:padding="8dp"
+            android:layout_marginBottom="8dp"
+            android:visibility="gone" />
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="?android:attr/listDivider"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="24dp" />
+
         <!-- ── Wake word ─────────────────────────────────────────────────────── -->
 
         <TextView

@@ -1,4 +1,5 @@
 class LanguagesController < ApplicationController
+  before_action :require_admin, except: [:index]
   skip_before_action :verify_authenticity_token, only: [:index]
 
   # POST /languages  — add a new language

@@ -53,6 +53,16 @@
     <string name="wake_notification_title">FreeSpeech — Aktivační slovo aktivní</string>
     <string name="wake_notification_text">Čekám na \"%1$s\"…</string>
     <string name="wake_notification_stop">Zastavit</string>
+    <!-- Konzole FreeSpeech -->
+    <string name="settings_console_title">Konzole FreeSpeech</string>
+    <string name="settings_console_desc">Připojte se k serveru Konzole FreeSpeech pro AI klasifikaci na straně serveru. Anonymní uživatelé získají Ollama; registrovaní uživatelé s klíčem Gemini dostanou svůj osobní AI engine.</string>
+    <string name="settings_console_url_label">URL konzole:</string>
+    <string name="settings_console_url_hint">http://váš-server:3001</string>
+    <string name="settings_console_token_label">Váš API token (volitelně):</string>
+    <string name="settings_console_token_hint">Vložte token ze svého profilu v konzoli</string>
+    <string name="settings_console_token_desc">Nechte prázdné pro anonymní použití konzole (Ollama). Zaregistrujte se v konzoli pro získání osobního tokenu.</string>
+    <string name="settings_console_active_notice">✓ AI na straně serveru aktivní — požadavky jdou do Konzole FreeSpeech. Lokální nastavení AI se nepoužívá.</string>
+
     <string name="wake_trigger_channel">Spouštěč aktivačního slova</string>
     <string name="wake_trigger_title">FreeSpeech vás slyšel!</string>
     <string name="wake_trigger_text">Klepněte pro otevření FreeSpeech a vyslovte svůj příkaz.</string>

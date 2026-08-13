@@ -1,0 +1,68 @@
+<h2 style="margin-bottom:1.2rem">Users</h2>
+
+<div class="card" style="padding:0;overflow:hidden">
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Email</th>
+          <th>Role</th>
+          <th>Status</th>
+          <th>AI engine</th>
+          <th>Registered</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @users.each do |user| %>
+          <tr>
+            <td><%= user.email %></td>
+            <td>
+              <span style="background:<%= user.admin? ? '#cfe2ff' : '#e9ecef' %>;
+                           padding:.15rem .5rem;border-radius:999px;font-size:.78rem">
+                <%= user.role %>
+              </span>
+            </td>
+            <td>
+              <% if user.confirmed? %>
+                <span style="color:var(--success)">✓ confirmed</span>
+              <% else %>
+                <span style="color:var(--warn)">⏳ pending</span>
+              <% end %>
+            </td>
+            <td style="color:var(--muted);font-size:.8rem">
+              <%= user.effective_ai_engine %>
+              <% if user.ai_engine.present? %>
+                <em style="color:#0d6efd">(personal)</em>
+              <% end %>
+            </td>
+            <td class="ts"><%= user.created_at.strftime("%Y-%m-%d") %></td>
+            <td style="white-space:nowrap">
+              <% unless user.confirmed? %>
+                <%= form_with url: confirm_admin_user_path(user), method: :post, local: true do %>
+                  <button type="submit" class="btn btn-primary btn-sm">✓ Confirm</button>
+                <% end %>
+              <% end %>
+              <% unless user == current_user %>
+                <%= form_with url: admin_user_path(user), method: :delete, local: true,
+                      data: { confirm: "Delete #{user.email}? This cannot be undone." } do %>
+                  <button type="submit" class="btn btn-danger">✕</button>
+                <% end %>
+              <% end %>
+            </td>
+          </tr>
+        <% end %>
+        <% if @users.empty? %>
+          <tr><td colspan="6" class="empty">No users yet.</td></tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="card" style="border-style:dashed">
+  <p class="hint">
+    Users who registered but haven't received the confirmation email can be confirmed here by the admin.<br>
+    Configure SMTP on the <a href="<%= config_path %>">Config tab</a> to enable automatic email confirmation.
+  </p>
+</div>

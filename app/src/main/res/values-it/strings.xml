@@ -53,6 +53,16 @@
     <string name="wake_notification_title">FreeSpeech — Parola di attivazione attiva</string>
     <string name="wake_notification_text">In attesa di \"%1$s\"…</string>
     <string name="wake_notification_stop">Interrompi</string>
+    <!-- Console FreeSpeech -->
+    <string name="settings_console_title">Console FreeSpeech</string>
+    <string name="settings_console_desc">Connettiti a un server Console FreeSpeech per la classificazione IA lato server. Gli utenti anonimi usano Ollama; gli utenti registrati con chiave Gemini usano il proprio motore IA personale.</string>
+    <string name="settings_console_url_label">URL della console:</string>
+    <string name="settings_console_url_hint">http://tuo-server:3001</string>
+    <string name="settings_console_token_label">Il tuo token API (opzionale):</string>
+    <string name="settings_console_token_hint">Incolla il token dal tuo profilo Console</string>
+    <string name="settings_console_token_desc">Lascia vuoto per usare la console in modo anonimo (Ollama). Registrati sulla Console per ottenere un token personale.</string>
+    <string name="settings_console_active_notice">✓ IA lato server attiva — le richieste vanno alla Console FreeSpeech. Le impostazioni IA locali non vengono utilizzate.</string>
+
     <string name="wake_trigger_channel">Attivatore parola di attivazione</string>
     <string name="wake_trigger_title">FreeSpeech ti ha sentito!</string>
     <string name="wake_trigger_text">Tocca per aprire FreeSpeech e pronunciare il tuo comando.</string>

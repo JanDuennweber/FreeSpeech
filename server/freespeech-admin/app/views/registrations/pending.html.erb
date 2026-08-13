@@ -1,0 +1,23 @@
+<div style="max-width:460px;margin:3rem auto;text-align:center">
+  <div style="font-size:3rem;margin-bottom:1rem">📬</div>
+  <h2 style="margin-bottom:.75rem">Check your email</h2>
+  <p style="color:var(--muted);margin-bottom:1.5rem">
+    We sent a confirmation link to <strong><%= @user.email %></strong>.<br>
+    Click it to activate your account and get your API token.
+  </p>
+  <div class="card" style="text-align:left">
+    <p style="font-size:.875rem;color:var(--muted)">
+      <strong>No email arrived?</strong><br>
+      Check your spam folder, or ask the admin to confirm your account manually
+      (they can do this from the Users page without needing email).
+    </p>
+    <% if Rails.env.development? %>
+      <hr style="margin:1rem 0;border:none;border-top:1px solid var(--border)">
+      <p style="font-size:.8rem;color:var(--muted)">
+        <strong>Development mode:</strong> confirmation link printed in the Rails log.
+        Or confirm directly:
+        <%= link_to "Click here to confirm", confirm_path(token: @user.confirmation_token) %>
+      </p>
+    <% end %>
+  </div>
+</div>

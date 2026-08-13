@@ -57,9 +57,19 @@ object IntentRouter {
      * 2. Keyword matching — fast, fully offline, never fails.
      */
     fun classify(transcript: String, prefs: SharedPreferences, context: Context): ClassifiedIntent {
+        val consoleUrl = prefs.getString("console_url", "").orEmpty().trim()
+
         if (prefs.getBoolean("use_ai", false)) {
-            AiClassifier(prefs, context).classify(transcript)?.let { return it }
-            // AI failed — fall through to keywords silently
+            if (consoleUrl.isNotEmpty()) {
+                // Server-side AI via FreeSpeech Console — uses the user's
+                // personal engine/key, or Ollama as the server default.
+                ServerAiClassifier(prefs, context).classify(transcript)?.let { return it }
+                // Server unreachable — skip local AI and go straight to keywords.
+            } else {
+                // Local AI (classic behaviour, no console configured).
+                AiClassifier(prefs, context).classify(transcript)?.let { return it }
+            }
+            // AI path failed — fall through to keyword matching silently.
         }
         return keywordClassify(transcript)
     }

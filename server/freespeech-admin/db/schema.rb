@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_08_13_113048) do
+ActiveRecord::Schema[8.1].define(version: 2026_08_13_114719) do
   create_table "languages", force: :cascade do |t|
     t.string "code", null: false
     t.datetime "created_at", null: false
@@ -26,5 +26,23 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_13_113048) do
     t.datetime "updated_at", null: false
     t.text "value"
     t.index ["key"], name: "index_settings_on_key", unique: true
+  end
+
+  create_table "users", force: :cascade do |t|
+    t.text "ai_api_key"
+    t.string "ai_base_url"
+    t.string "ai_engine"
+    t.string "ai_model"
+    t.string "api_token", null: false
+    t.string "confirmation_token"
+    t.datetime "confirmed_at"
+    t.datetime "created_at", null: false
+    t.string "email", null: false
+    t.string "password_digest", null: false
+    t.string "role", default: "user", null: false
+    t.datetime "updated_at", null: false
+    t.index ["api_token"], name: "index_users_on_api_token", unique: true
+    t.index ["confirmation_token"], name: "index_users_on_confirmation_token", unique: true
+    t.index ["email"], name: "index_users_on_email", unique: true
   end
 end

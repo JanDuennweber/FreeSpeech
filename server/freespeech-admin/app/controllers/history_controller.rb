@@ -1,6 +1,7 @@
 require "json"
 
 class HistoryController < ApplicationController
+  before_action :require_admin
   PER_PAGE = 50
 
   def index

@@ -1,22 +1,40 @@
 class ApplicationController < ActionController::Base
-  # Basic-auth protection — set FREESPEECH_ADMIN_PASSWORD env var on the server.
-  # Falls back to "freespeech" if the env var is absent (change it!).
-  http_basic_authenticate_with(
-    name:     ENV.fetch("FREESPEECH_ADMIN_USER",     "admin"),
-    password: ENV.fetch("FREESPEECH_ADMIN_PASSWORD", "freespeech"),
-  )
-
-  # Allow forms without CSRF only for the JSON API endpoints.
   protect_from_forgery with: :exception
 
-  helper_method :active_tab
+  helper_method :current_user, :logged_in?, :admin?, :active_tab
 
   private
+
+  # ── Session auth ───────────────────────────────────────────────────────────
+
+  def current_user
+    @current_user ||= User.find_by(id: session[:user_id]) if session[:user_id]
+  end
+
+  def logged_in?   = current_user.present?
+  def admin?       = current_user&.admin?
+
+  def require_login
+    return if logged_in?
+    redirect_to login_path, alert: "Please log in."
+  end
+
+  def require_admin
+    return if admin?
+    if logged_in?
+      redirect_to profile_path, alert: "Admin access required."
+    else
+      redirect_to login_path, alert: "Please log in."
+    end
+  end
+
+  # ── Tab highlight ──────────────────────────────────────────────────────────
 
   def active_tab
     case controller_name
     when "config", "languages" then :config
     when "history"              then :history
+    when "profile"              then :profile
     else :config
     end
   end

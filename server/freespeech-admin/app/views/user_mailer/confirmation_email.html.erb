@@ -1,0 +1,16 @@
+<!doctype html><html><body style="font-family:system-ui,sans-serif;color:#212529;max-width:480px;margin:2rem auto">
+<h2 style="color:#1a1a2e">🎤 FreeSpeech Console</h2>
+<p>Hello <%= @user.email %>,</p>
+<p>Click the link below to confirm your account and get your API token:</p>
+<p style="margin:1.5rem 0">
+  <a href="<%= @confirmation_url %>"
+     style="background:#0d6efd;color:#fff;padding:.6rem 1.2rem;border-radius:5px;text-decoration:none">
+    Confirm my account
+  </a>
+</p>
+<p style="color:#6c757d;font-size:.85rem">
+  Or copy this URL into your browser:<br>
+  <code><%= @confirmation_url %></code>
+</p>
+<p style="color:#6c757d;font-size:.85rem">If you didn't register, ignore this email.</p>
+</body></html>

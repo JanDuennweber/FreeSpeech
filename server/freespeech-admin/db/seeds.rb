@@ -1,3 +1,17 @@
+# ── Admin user ───────────────────────────────────────────────────────────────
+admin_email    = ENV.fetch("ADMIN_EMAIL",    "admin@freespeech.local")
+admin_password = ENV.fetch("ADMIN_PASSWORD", "freespeech")
+
+unless User.exists?(email: admin_email)
+  User.create!(
+    email:        admin_email,
+    password:     admin_password,
+    role:         "admin",
+    confirmed_at: Time.current,
+  )
+  puts "  Admin user created: #{admin_email} / #{admin_password}  ← CHANGE THIS PASSWORD!"
+end
+
 # ── Default languages ─────────────────────────────────────────────────────────
 [
   { code: "en", name: "English",  protected: true  },
@@ -16,6 +30,13 @@ end
 # ── Default settings ──────────────────────────────────────────────────────────
 defaults = {
   "whisper_url"         => "http://localhost:8080/v1/audio/transcriptions",
+  # SMTP (leave blank to skip email; admin can confirm users manually)
+  "smtp_host"           => "",
+  "smtp_port"           => "587",
+  "smtp_user"           => "",
+  "smtp_password"       => "",
+  "smtp_from"           => "freespeech@localhost",
+  "app_host"            => "localhost:3001",
   "whisper_model"       => "large-v3",
 
   "ai_engine"           => "ollama",               # gemini | openai | ollama

@@ -136,14 +136,56 @@
   <% end %>
 </div>
 
+<%# ── SMTP ────────────────────────────────────────────────────────────────── %>
+<div class="card">
+  <div class="card-title">📧 Email (SMTP) — for account confirmation</div>
+  <p class="hint" style="margin-bottom:.9rem">
+    Leave <em>Host</em> blank to disable email. Users can still be confirmed manually
+    on the <a href="<%= admin_users_path %>">Users page</a>.
+  </p>
+  <%= form_with url: config_path, method: :patch, local: true do %>
+    <div class="fields-grid">
+      <div class="field">
+        <%= label_tag "settings[smtp_host]", "SMTP Host" %>
+        <%= text_field_tag "settings[smtp_host]", @settings["smtp_host"], placeholder: "smtp.example.com" %>
+      </div>
+      <div class="field">
+        <%= label_tag "settings[smtp_port]", "SMTP Port" %>
+        <%= number_field_tag "settings[smtp_port]", @settings["smtp_port"], placeholder: "587" %>
+      </div>
+      <div class="field">
+        <%= label_tag "settings[smtp_user]", "SMTP Username" %>
+        <%= text_field_tag "settings[smtp_user]", @settings["smtp_user"] %>
+      </div>
+      <div class="field">
+        <%= label_tag "settings[smtp_password]", "SMTP Password" %>
+        <%= password_field_tag "settings[smtp_password]", @settings["smtp_password"],
+              autocomplete: "new-password" %>
+      </div>
+      <div class="field">
+        <%= label_tag "settings[smtp_from]", "From address" %>
+        <%= text_field_tag "settings[smtp_from]", @settings["smtp_from"],
+              placeholder: "freespeech@yourdomain.com" %>
+      </div>
+      <div class="field">
+        <%= label_tag "settings[app_host]", "App host (for email links)" %>
+        <%= text_field_tag "settings[app_host]", @settings["app_host"],
+              placeholder: "pittyvaich:3001" %>
+        <div class="hint">Used to build confirmation URLs in emails.</div>
+      </div>
+    </div>
+    <button type="submit" class="btn btn-primary">💾 Save Email Settings</button>
+  <% end %>
+</div>
+
 <%# ── API reference ────────────────────────────────────────────────────────── %>
 <div class="card" style="border-style:dashed">
-  <div class="card-title" style="font-size:.85rem">🔌 JSON Config API</div>
+  <div class="card-title" style="font-size:.85rem">🔌 JSON API</div>
   <p class="hint">
-    The Python log server and Android app can fetch live config from this endpoint:
-    <a href="/api/config" target="_blank"><code>/api/config</code></a>
+    Android app → server-side AI: <code>POST <a href="/api/classify" target="_blank">/api/classify</a></code> (optional Bearer token)<br>
+    Live config feed: <a href="/api/config" target="_blank"><code>/api/config</code></a>
     &nbsp;|&nbsp;
     <a href="/api/languages" target="_blank"><code>/api/languages</code></a>
-    <br>Note: the API key is never exposed via the API.
+    <br><span style="font-size:.78rem">API key is never exposed via the API.</span>
   </p>
 </div>
