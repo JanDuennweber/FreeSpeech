@@ -50,8 +50,8 @@ defaults = {
   "tts_voice"           => "af_heart",
   "tts_model"           => "kokoro",
 
-  "log_jsonl_path"      => "/var/log/freespeech/freespeech_commands.jsonl",
-  "log_audio_dir"       => "/var/log/freespeech/audio",
+  "log_jsonl_path"      => ENV.fetch("LOG_JSONL_PATH", "/data/logs/freespeech_commands.jsonl"),
+  "log_audio_dir"       => ENV.fetch("LOG_AUDIO_DIR",  "/data/audio"),
   "log_max_entries"     => "1000",
   "log_max_wavs"        => "100",
 }

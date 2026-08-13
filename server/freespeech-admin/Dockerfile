@@ -1,74 +1,48 @@
-# syntax=docker/dockerfile:1
-# check=error=true
+# ── Build stage ───────────────────────────────────────────────────────────────
+FROM ruby:3.3-slim AS build
 
-# This Dockerfile is designed for production, not development. Use with Kamal or build'n'run by hand:
-# docker build -t freespeech_admin .
-# docker run -d -p 80:80 -e RAILS_MASTER_KEY=<value from config/master.key> --name freespeech_admin freespeech_admin
+RUN apt-get update -qq && apt-get install -y --no-install-recommends \
+      build-essential \
+      libsqlite3-dev \
+      git \
+    && rm -rf /var/lib/apt/lists/*
 
-# For a containerized dev environment, see Dev Containers: https://guides.rubyonrails.org/getting_started_with_devcontainer.html
+WORKDIR /app
 
-# Make sure RUBY_VERSION matches the Ruby version in .ruby-version
-ARG RUBY_VERSION=4.0.6
-FROM docker.io/library/ruby:$RUBY_VERSION-slim AS base
-
-# Rails app lives here
-WORKDIR /rails
-
-# Install base packages
-RUN apt-get update -qq && \
-    apt-get install --no-install-recommends -y curl libjemalloc2 sqlite3 && \
-    ln -s /usr/lib/$(uname -m)-linux-gnu/libjemalloc.so.2 /usr/local/lib/libjemalloc.so && \
-    rm -rf /var/lib/apt/lists /var/cache/apt/archives
-
-# Set production environment variables and enable jemalloc for reduced memory usage and latency.
-ENV RAILS_ENV="production" \
-    BUNDLE_DEPLOYMENT="1" \
-    BUNDLE_PATH="/usr/local/bundle" \
-    BUNDLE_WITHOUT="development" \
-    LD_PRELOAD="/usr/local/lib/libjemalloc.so"
-
-# Throw-away build stage to reduce size of final image
-FROM base AS build
-
-# Install packages needed to build gems
-RUN apt-get update -qq && \
-    apt-get install --no-install-recommends -y build-essential git libyaml-dev pkg-config && \
-    rm -rf /var/lib/apt/lists /var/cache/apt/archives
-
-# Install application gems
-COPY vendor/* ./vendor/
+# Install gems (production only — excludes development/test)
 COPY Gemfile Gemfile.lock ./
+RUN bundle config set --local without "development test" \
+ && bundle install --jobs 4 --retry 3
 
-RUN bundle install && \
-    rm -rf ~/.bundle/ "${BUNDLE_PATH}"/ruby/*/cache "${BUNDLE_PATH}"/ruby/*/bundler/gems/*/.git && \
-    # -j 1 disable parallel compilation to avoid a QEMU bug: https://github.com/rails/bootsnap/issues/495
-    bundle exec bootsnap precompile -j 1 --gemfile
-
-# Copy application code
+# Copy application source
 COPY . .
 
-# Precompile bootsnap code for faster boot times.
-# -j 1 disable parallel compilation to avoid a QEMU bug: https://github.com/rails/bootsnap/issues/495
-RUN bundle exec bootsnap precompile -j 1 app/ lib/
+# ── Runtime stage ─────────────────────────────────────────────────────────────
+FROM ruby:3.3-slim
 
+RUN apt-get update -qq && apt-get install -y --no-install-recommends \
+      libsqlite3-0 \
+    && rm -rf /var/lib/apt/lists/*
 
+# Non-root user
+RUN useradd -m -u 1001 -s /bin/bash freespeech
 
+WORKDIR /app
 
-# Final stage for app image
-FROM base
+# Copy gems and app from build stage
+COPY --from=build /usr/local/bundle /usr/local/bundle
+COPY --from=build --chown=freespeech:freespeech /app /app
 
-# Run and own only the runtime files as a non-root user for security
-RUN groupadd --system --gid 1000 rails && \
-    useradd rails --uid 1000 --gid 1000 --create-home --shell /bin/bash
-USER 1000:1000
+# Persistent data directories — mount volumes here
+RUN mkdir -p /data/logs /data/audio /app/storage \
+ && chown -R freespeech:freespeech /data /app/storage
 
-# Copy built artifacts: gems, application
-COPY --chown=rails:rails --from=build "${BUNDLE_PATH}" "${BUNDLE_PATH}"
-COPY --chown=rails:rails --from=build /rails /rails
+# Make entrypoint executable
+RUN chmod +x bin/docker-entrypoint
 
-# Entrypoint prepares the database.
-ENTRYPOINT ["/rails/bin/docker-entrypoint"]
+USER freespeech
 
-# Start server via Thruster by default, this can be overwritten at runtime
-EXPOSE 80
-CMD ["./bin/thrust", "./bin/rails", "server"]
+EXPOSE 3001
+
+ENTRYPOINT ["bin/docker-entrypoint"]
+CMD ["bundle", "exec", "puma", "-C", "config/puma.rb"]

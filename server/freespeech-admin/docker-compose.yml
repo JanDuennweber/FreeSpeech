@@ -1,0 +1,52 @@
+services:
+
+  freespeech-console:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: freespeech-console
+    restart: unless-stopped
+    env_file: .env
+
+    volumes:
+      # Rails storage/ — holds all three SQLite databases
+      # (production.sqlite3, production_cache.sqlite3, production_queue.sqlite3)
+      - sqlite_data:/app/storage
+
+      # Log files (JSONL command log) and audio recordings
+      - app_data:/data
+
+    networks:
+      # Internal compose network (not published externally)
+      - internal
+      # Shared network with the central nginx reverse proxy.
+      # The name must match the external network the admin has set up.
+      # Verify the exact name with: docker network ls
+      - nginx-proxy
+
+    # Allows the container to reach services on the host via SSH reverse tunnel.
+    # The tunnel from im-lochlea binds to 0.0.0.0 on im-pittyvaich, making
+    # Whisper / Ollama / Kokoro reachable at host.docker.internal:<port>.
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+    # No 'ports:' block — the container is never bound directly to the host.
+    # All external access goes through the nginx reverse proxy on the shared network.
+
+networks:
+  internal:
+    driver: bridge
+    # This network is internal to this compose stack only.
+
+  nginx-proxy:
+    external: true
+    # This network is managed by the admin's central nginx setup.
+    # If the name differs on im-pittyvaich, override with:
+    #   COMPOSE_PROJECT_NAME=freespeech docker compose up
+    # or edit the name here to match.
+
+volumes:
+  sqlite_data:
+    # Persists all SQLite database files across container restarts and updates.
+  app_data:
+    # Persists command logs (/data/logs/) and audio recordings (/data/audio/).

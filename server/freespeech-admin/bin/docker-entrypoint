@@ -1,8 +1,13 @@
-#!/bin/bash -e
+#!/bin/bash
+set -e
 
-# If running the rails server then create or migrate existing database
-if [ "${@: -2:1}" == "./bin/rails" ] && [ "${@: -1:1}" == "server" ]; then
-  ./bin/rails db:prepare
-fi
+# Run database migrations on every start (safe — idempotent).
+# db:prepare: loads schema on fresh DB, migrates on existing one.
+echo "→ Running database migrations…"
+bundle exec rails db:prepare
 
-exec "${@}"
+echo "→ Seeding defaults (idempotent — safe to run on every start)…"
+bundle exec rails db:seed
+
+echo "→ Starting Puma…"
+exec "$@"
