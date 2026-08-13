@@ -2,6 +2,10 @@
 <resources>
     <string name="app_name">FreeSpeech</string>
 
+    <!-- ── Sélection de langue ───────────────────────────────────────────────── -->
+    <string name="settings_language_label">Langue</string>
+    <string name="language_system_default">Langue du téléphone (par défaut)</string>
+
     <!-- ── Paramètres ────────────────────────────────────────────────────────── -->
     <string name="settings_subtitle">Assistant vocal open-source pour Android Auto sur /e/OS</string>
 

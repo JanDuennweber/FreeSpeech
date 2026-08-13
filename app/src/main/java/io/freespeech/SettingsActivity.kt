@@ -28,6 +28,19 @@ class SettingsActivity : AppCompatActivity() {
 
         val prefs = getSharedPreferences("freespeech", Context.MODE_PRIVATE)
 
+        // ── Language spinner ───────────────────────────────────────────────────
+
+        val langSpinner = findViewById<Spinner>(R.id.spinner_language)
+        val langLabels = LocaleHelper.SUPPORTED.mapIndexed { i, sl ->
+            if (i == 0) getString(R.string.language_system_default) else sl.nativeName
+        }
+        ArrayAdapter(this, android.R.layout.simple_spinner_item, langLabels)
+            .also { it.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item) }
+            .let { langSpinner.adapter = it }
+        val currentTag = LocaleHelper.currentTag()
+        val langIdx = LocaleHelper.SUPPORTED.indexOfFirst { it.tag == currentTag }.coerceAtLeast(0)
+        langSpinner.setSelection(langIdx)
+
         // ── Whisper URL ────────────────────────────────────────────────────────
 
         val urlField = findViewById<EditText>(R.id.whisper_url)
@@ -61,6 +74,12 @@ class SettingsActivity : AppCompatActivity() {
         // ── Save ───────────────────────────────────────────────────────────────
 
         findViewById<Button>(R.id.save_button).setOnClickListener {
+            // Apply locale — triggers Activity recreation if it changed.
+            val selectedTag = LocaleHelper.SUPPORTED
+                .getOrElse(langSpinner.selectedItemPosition) { LocaleHelper.SUPPORTED[0] }
+                .tag
+            LocaleHelper.apply(selectedTag)
+
             val edit = prefs.edit()
                 .putString("whisper_url", urlField.text.toString().trim())
                 .putString(VoiceCategory.MUSIC.prefKey,      selectedPkg(R.id.spinner_music,     musicOptions))

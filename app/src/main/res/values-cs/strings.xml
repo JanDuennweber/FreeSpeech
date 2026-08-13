@@ -2,6 +2,10 @@
 <resources>
     <string name="app_name">FreeSpeech</string>
 
+    <!-- ── Výběr jazyka ──────────────────────────────────────────────────────── -->
+    <string name="settings_language_label">Jazyk</string>
+    <string name="language_system_default">Jazyk telefonu (výchozí)</string>
+
     <!-- ── Nastavení ─────────────────────────────────────────────────────────── -->
     <string name="settings_subtitle">Open-source hlasový asistent pro Android Auto na /e/OS</string>
 
