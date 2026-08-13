@@ -23,6 +23,9 @@ Rails.application.routes.draw do
   post   "/languages",      to: "languages#create"
   delete "/languages/:id",  to: "languages#destroy", as: :language
 
+  post   "/custom_topics",      to: "custom_topics#create",  as: :custom_topics
+  delete "/custom_topics/:id",  to: "custom_topics#destroy", as: :custom_topic
+
   get    "/history",        to: "history#index",   as: :history
 
   # ── Admin: user management ────────────────────────────────────────────────────
@@ -34,12 +37,14 @@ Rails.application.routes.draw do
 
   # ── JSON API (public, token-optional) ────────────────────────────────────────
   # classify lives in Api:: namespace; config & languages reuse existing controllers.
-  post "/api/classify",   to: "api/classify#create",  as: :api_classify
-  post "/api/tts",        to: "api/tts#create",        as: :api_tts
-  get  "/api/config",     to: "config#api",            as: :api_config,
-                          defaults: { format: :json }
-  get  "/api/languages",  to: "languages#index",       as: :api_languages,
-                          defaults: { format: :json }
+  post "/api/classify",      to: "api/classify#create",       as: :api_classify
+  post "/api/tts",           to: "api/tts#create",            as: :api_tts
+  get  "/api/config",        to: "config#api",                as: :api_config,
+                             defaults: { format: :json }
+  get  "/api/languages",     to: "languages#index",           as: :api_languages,
+                             defaults: { format: :json }
+  get  "/api/custom_topics", to: "api/custom_topics#index",   as: :api_custom_topics,
+                             defaults: { format: :json }
 
   # ── WAV serving ───────────────────────────────────────────────────────────────
   get "/audio/:filename", to: "audio#show", as: :audio_file,

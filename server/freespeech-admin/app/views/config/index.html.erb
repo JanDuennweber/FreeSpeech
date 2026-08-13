@@ -157,6 +157,123 @@
   </div>
 <% end %>
 
+<%# ── Custom Topic → App Mappings ───────────────────────────────────────────── %>
+<div class="card">
+  <div class="card-title">🗂 Custom Topic → App Mappings</div>
+  <p class="hint" style="margin-bottom:.9rem">
+    Extend the voice assistant with flexible topic-to-app mappings using the
+    <strong>ping-pong mechanism</strong>: the AI first detects whether the user's
+    statement relates to a topic (<em>ping</em>), then transforms it into the
+    app-specific search query (<em>pong</em>).
+    <br>
+    Example: <em>"I could really go for french fries"</em> →
+    topic: <strong>Eating</strong> →
+    pong query: <em>"french fries near me"</em> →
+    <code>yelp://search?terms=french+fries+near+me</code>
+    <br>
+    Use <code>{query}</code> as the placeholder in the URI template.
+  </p>
+
+  <%# Existing topics table %>
+  <% if @custom_topics.any? %>
+    <div style="overflow-x:auto;margin-bottom:1rem">
+      <table style="width:100%;border-collapse:collapse;font-size:.85rem">
+        <thead>
+          <tr style="border-bottom:2px solid #dee2e6;text-align:left">
+            <th style="padding:.4rem .6rem">Topic (AI key)</th>
+            <th style="padding:.4rem .6rem">Description</th>
+            <th style="padding:.4rem .6rem">App</th>
+            <th style="padding:.4rem .6rem">URI Template</th>
+            <th style="padding:.4rem .6rem"></th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @custom_topics.each do |t| %>
+            <tr style="border-bottom:1px solid #f1f3f5">
+              <td style="padding:.5rem .6rem">
+                <strong><%= t.name %></strong><br>
+                <code style="font-size:.75em;color:#6c757d"><%= t.slug %></code>
+              </td>
+              <td style="padding:.5rem .6rem;color:#495057"><%= t.description %></td>
+              <td style="padding:.5rem .6rem">
+                <%= t.app_label %>
+                <% if t.android_package.present? %>
+                  <br><code style="font-size:.72em;color:#6c757d"><%= t.android_package %></code>
+                <% end %>
+              </td>
+              <td style="padding:.5rem .6rem;word-break:break-all">
+                <code style="font-size:.78em"><%= t.uri_template %></code>
+                <% if t.transform_hint.present? %>
+                  <br><span style="font-size:.75em;color:#6c757d;font-style:italic">Hint: <%= t.transform_hint %></span>
+                <% end %>
+              </td>
+              <td style="padding:.5rem .6rem;white-space:nowrap">
+                <%= form_with url: custom_topic_path(t), method: :delete, local: true,
+                      data: { confirm: "Remove "#{t.name}"?" } do %>
+                  <button type="submit" class="btn btn-danger" style="padding:.2rem .6rem;font-size:.8rem">✕</button>
+                <% end %>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  <% else %>
+    <p class="hint" style="margin-bottom:.9rem">No custom topics yet. Add one below.</p>
+  <% end %>
+
+  <%# Add topic form %>
+  <%= form_with url: custom_topics_path, method: :post, local: true do |f| %>
+    <div style="border-top:1px solid #dee2e6;padding-top:.9rem">
+      <div class="hint" style="margin-bottom:.6rem;font-weight:600">Add a new topic</div>
+      <div class="fields-grid" style="grid-template-columns:repeat(auto-fill,minmax(220px,1fr))">
+        <div class="field">
+          <%= label_tag "custom_topic[name]", "Topic name *" %>
+          <%= text_field_tag "custom_topic[name]", nil, placeholder: "Eating", required: true %>
+          <div class="hint">Short word or phrase. Becomes <code>CUSTOM_NAME</code> in the AI prompt.</div>
+        </div>
+        <div class="field">
+          <%= label_tag "custom_topic[description]", "Description for AI *" %>
+          <%= text_field_tag "custom_topic[description]", nil,
+                placeholder: "Finding restaurants, food, places to eat", required: true %>
+          <div class="hint">Helps the AI decide when this topic applies. Be specific.</div>
+        </div>
+        <div class="field">
+          <%= label_tag "custom_topic[app_label]", "App label *" %>
+          <%= text_field_tag "custom_topic[app_label]", nil, placeholder: "Yelp", required: true %>
+        </div>
+        <div class="field">
+          <%= label_tag "custom_topic[android_package]", "Android package (optional)" %>
+          <%= text_field_tag "custom_topic[android_package]", nil, placeholder: "com.yelp.android" %>
+          <div class="hint">Preferred app. Leave blank for any URI handler.</div>
+        </div>
+        <div class="field" style="grid-column:span 2">
+          <%= label_tag "custom_topic[uri_template]", "URI template * — use {query} as placeholder" %>
+          <%= text_field_tag "custom_topic[uri_template]", nil,
+                placeholder: "https://www.yelp.com/search?find_desc={query}", required: true,
+                style: "font-family:monospace;font-size:.85rem" %>
+          <div class="hint">
+            Examples: &nbsp;
+            <code>yelp://search?terms={query}</code> &nbsp;·&nbsp;
+            <code>geo:0,0?q={query}+restaurant</code> &nbsp;·&nbsp;
+            <code>vnd.youtube:///search?q={query}</code> &nbsp;·&nbsp;
+            <code>https://www.amazon.com/s?k={query}</code>
+          </div>
+        </div>
+        <div class="field" style="grid-column:span 2">
+          <%= label_tag "custom_topic[transform_hint]", "Query transform hint (optional)" %>
+          <%= text_field_tag "custom_topic[transform_hint]", nil,
+                placeholder: "Phrase as a local restaurant or food search." %>
+          <div class="hint">Extra instruction for the pong LLM call to improve query quality.</div>
+        </div>
+      </div>
+      <div style="margin-top:.75rem">
+        <button type="submit" class="btn btn-primary btn-sm">+ Add Topic</button>
+      </div>
+    </div>
+  <% end %>
+</div>
+
 <%# ── Languages ───────────────────────────────────────────────────────────── %>
 <div class="card">
   <div class="card-title">🌐 Supported Languages</div>

@@ -26,20 +26,34 @@ enum class VoiceCategory(
     CALL      ("app_call",       "Call"),
     WEB_SEARCH("app_websearch",  "Web Search"),
     NONE      ("",               ""),
+    /**
+     * A custom topic-to-app mapping defined in the FreeSpeech Console.
+     * The [ClassifiedIntent.uriTemplate], [ClassifiedIntent.androidPackage], and
+     * [ClassifiedIntent.appLabel] fields carry the routing details.
+     */
+    CUSTOM    ("",               ""),
 }
 
 /**
  * The result of classifying a transcript.
  *
- * @param aiMessage  When the AI classifier was used, it writes its own short confirmation
- *                   label in the user's language (e.g. "Spiele David Bowie mit Tidal").
- *                   When keyword matching was used, this is null and [routingLabel] falls
- *                   back to a generic label built from the category + query.
+ * @param aiMessage      When the AI classifier was used, it writes its own short confirmation
+ *                       label in the user's language (e.g. "Spiele David Bowie mit Tidal").
+ *                       When keyword matching was used, this is null and [routingLabel] falls
+ *                       back to a generic label built from the category + query.
+ * @param uriTemplate    For [VoiceCategory.CUSTOM]: URI template with `{query}` placeholder,
+ *                       e.g. `yelp://search?terms={query}`. Null for standard categories.
+ * @param androidPackage For [VoiceCategory.CUSTOM]: preferred app package (optional). If set,
+ *                       the intent is targeted at that app; falls back to any URI handler.
+ * @param appLabel       For [VoiceCategory.CUSTOM]: human-readable app name for display.
  */
 data class ClassifiedIntent(
-    val category:  VoiceCategory,
-    val query:     String,
-    val aiMessage: String? = null,
+    val category:       VoiceCategory,
+    val query:          String,
+    val aiMessage:      String? = null,
+    val uriTemplate:    String? = null,
+    val androidPackage: String? = null,
+    val appLabel:       String? = null,
 )
 
 // ── Router ─────────────────────────────────────────────────────────────────────
@@ -163,6 +177,19 @@ object IntentRouter {
                 browserIntent(classified.query, prefs)
 
             VoiceCategory.NONE -> null  // not understood — caller shows message only
+
+            VoiceCategory.CUSTOM -> {
+                // Build a deep-link intent from the URI template returned by the server.
+                // {query} is replaced with the URL-encoded pong query.
+                val template = classified.uriTemplate ?: return null
+                val uri = Uri.parse(template.replace("{query}", Uri.encode(classified.query)))
+                Intent(Intent.ACTION_VIEW, uri).apply {
+                    // Target the preferred app if specified and installed; otherwise
+                    // let the OS choose any app that handles the URI scheme.
+                    classified.androidPackage?.takeIf { it.isNotBlank() }?.let { setPackage(it) }
+                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                }
+            }
         }
     }
 
@@ -181,6 +208,9 @@ object IntentRouter {
             VoiceCategory.CALL       -> context.getString(R.string.routing_call)
             VoiceCategory.WEB_SEARCH -> context.getString(R.string.routing_websearch,  classified.query)
             VoiceCategory.NONE       -> context.getString(R.string.routing_not_understood_suggestion)
+            // Custom topic: server always provides aiMessage, but have a fallback.
+            VoiceCategory.CUSTOM     -> classified.appLabel
+                ?.let { "${it}: ${classified.query}" } ?: classified.query
         }
 
     // ── helpers ────────────────────────────────────────────────────────────────

@@ -57,3 +57,30 @@ defaults = {
 }
 
 defaults.each { |k, v| Setting.find_or_create_by!(key: k) { |s| s.value = v } }
+
+# ── Example custom topics ─────────────────────────────────────────────────────
+# These illustrate the ping-pong topic→app mechanism and can be removed or edited.
+[
+  {
+    name:           "Eating",
+    description:    "Finding restaurants, food delivery, places to eat nearby",
+    app_label:      "Yelp",
+    android_package: "com.yelp.android",
+    uri_template:   "https://www.yelp.com/search?find_desc={query}",
+    transform_hint: "Phrase the query as a local restaurant or food search.",
+    position:       0,
+  },
+  {
+    name:           "Movies",
+    description:    "Cinema listings, movie showtimes, film searches",
+    app_label:      "YouTube",
+    android_package: "com.google.android.youtube",
+    uri_template:   "vnd.youtube:///search?q={query}",
+    transform_hint: "Phrase as a YouTube movie trailer or film search query.",
+    position:       1,
+  },
+].each do |attrs|
+  CustomTopic.find_or_create_by!(name: attrs[:name]) do |t|
+    t.assign_attributes(attrs.except(:name))
+  end
+end

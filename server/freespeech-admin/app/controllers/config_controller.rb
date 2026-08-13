@@ -28,8 +28,9 @@ class ConfigController < ApplicationController
   ].freeze
 
   def index
-    @settings  = Setting.to_h
-    @languages = Language.order(:name)
+    @settings      = Setting.to_h
+    @languages     = Language.order(:name)
+    @custom_topics = CustomTopic.all
   end
 
   def update
