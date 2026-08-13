@@ -242,6 +242,7 @@
       <a href="<%= admin_users_path %>"  class="<%= 'active' if controller_name == 'users' %>">👥 Users</a>
     <% end %>
     <% if logged_in? %>
+      <a href="<%= rag_documents_path %>" class="<%= 'active' if active_tab == :rag %>">📚 RAG Library</a>
       <a href="<%= profile_path %>" class="<%= 'active' if active_tab == :profile %>">👤 My Account</a>
       <%= button_to "Sign out", logout_path, method: :delete,
             style: "background:transparent;border:none;color:#cbd5e1;cursor:pointer;font-size:.85rem;padding:.4rem .9rem" %>

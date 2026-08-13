@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_08_13_130000) do
+ActiveRecord::Schema[8.1].define(version: 2026_08_13_140000) do
   create_table "custom_topics", force: :cascade do |t|
     t.string "android_package", default: "", null: false
     t.string "app_label", null: false
@@ -33,6 +33,19 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_13_130000) do
     t.boolean "protected", default: false, null: false
     t.datetime "updated_at", null: false
     t.index ["code"], name: "index_languages_on_code", unique: true
+  end
+
+  create_table "rag_documents", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "description", default: "", null: false
+    t.text "file_content", default: "", null: false
+    t.string "filename", default: "", null: false
+    t.string "keyword", default: "", null: false
+    t.integer "position", default: 0, null: false
+    t.datetime "updated_at", null: false
+    t.integer "user_id", null: false
+    t.index ["user_id", "keyword"], name: "index_rag_documents_on_user_id_and_keyword"
+    t.index ["user_id"], name: "index_rag_documents_on_user_id"
   end
 
   create_table "settings", force: :cascade do |t|
@@ -60,4 +73,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_13_130000) do
     t.index ["confirmation_token"], name: "index_users_on_confirmation_token", unique: true
     t.index ["email"], name: "index_users_on_email", unique: true
   end
+
+  add_foreign_key "rag_documents", "users"
 end

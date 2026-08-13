@@ -91,10 +91,12 @@ class ServerAiClassifier(
     } catch (_: PackageManager.NameNotFoundException) { pkg }
 
     private fun parseResponse(json: String): ClassifiedIntent {
-        val obj     = JSONObject(json)
-        val catName = obj.optString("category", "NONE").uppercase()
-        val query   = obj.optString("query",    "")
-        val message = obj.optString("message",  "").ifBlank { null }
+        val obj          = JSONObject(json)
+        val catName      = obj.optString("category", "NONE").uppercase()
+        val query        = obj.optString("query",    "")
+        val message      = obj.optString("message",  "").ifBlank { null }
+        // routing_chain is present for CUSTOM (app/web) and RAG responses; null otherwise.
+        val routingChain = obj.optString("routing_chain", "").ifBlank { null }
 
         // Custom topic — server ran the pong transform and returns the full routing info.
         if (catName == "CUSTOM") {
@@ -112,12 +114,13 @@ class ServerAiClassifier(
                 androidPackage = obj.optString("android_package", "").ifBlank { null },
                 appLabel       = obj.optString("app_label",       "").ifBlank { null },
                 searchUrls     = searchUrls,
-                routingChain   = obj.optString("routing_chain",   "").ifBlank { null },
+                routingChain   = routingChain,
             )
         }
 
         val category = try { VoiceCategory.valueOf(catName) }
                        catch (_: IllegalArgumentException) { VoiceCategory.NONE }
-        return ClassifiedIntent(category, query, message)
+        // For NONE (including RAG responses) pass routing_chain so History shows the chain.
+        return ClassifiedIntent(category, query, message, routingChain = routingChain)
     }
 }

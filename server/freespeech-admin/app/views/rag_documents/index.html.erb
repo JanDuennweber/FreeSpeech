@@ -1,0 +1,161 @@
+<style>
+  /* ── RAG Library extras ──────────────────────────────────────────────────── */
+  .rag-slug {
+    font-family: monospace;
+    font-size: .78rem;
+    background: #e9ecef;
+    padding: .1em .4em;
+    border-radius: 3px;
+    color: #495057;
+  }
+  .rag-chars { font-size: .77rem; color: var(--muted); white-space: nowrap; }
+  .upload-card .fields-grid { grid-template-columns: 1fr 1fr; }
+  .file-field { grid-column: 1 / -1; }
+  .format-note { font-size: .77rem; color: var(--muted); margin-top: .3rem; }
+
+  /* Routing chain preview */
+  .chain-example {
+    font-size: .82rem;
+    background: #f8f9fa;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: .6rem 1rem;
+    margin-top: .75rem;
+    color: var(--muted);
+    font-family: monospace;
+  }
+  .chain-example strong { color: var(--txt); }
+</style>
+
+<h2 style="margin-bottom:.4rem">📚 RAG Library</h2>
+<p class="sub">
+  Upload PDF or EPUB documents and map them to topic keywords.
+  When FreeSpeech detects a match, it extracts a relevant factsheet from your document,
+  augments the prompt, and speaks back a personalised answer.
+</p>
+
+<div class="chain-example">
+  Routing chain example: &nbsp;
+  <strong>"nice beaches near cagliari"</strong> → traveling → sardinia_guide.epub
+</div>
+
+<%# ── Document table ──────────────────────────────────────────────────────── %>
+<div class="card" style="margin-top:1.5rem">
+  <div class="card-title">Your Documents (<%= @rag_documents.size %>)</div>
+
+  <% if @rag_documents.empty? %>
+    <div class="empty">No documents yet. Upload your first PDF or EPUB below.</div>
+  <% else %>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Keyword</th>
+            <th>Ping ID</th>
+            <th>Description</th>
+            <th>Document</th>
+            <th>Extracted</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @rag_documents.each do |doc| %>
+            <tr>
+              <td><strong><%= doc.keyword %></strong></td>
+              <td><span class="rag-slug"><%= doc.slug %></span></td>
+              <td style="color:var(--muted);font-size:.83rem"><%= doc.description.presence || "—" %></td>
+              <td style="font-size:.83rem"><%= doc.filename %></td>
+              <td><span class="rag-chars"><%= number_with_delimiter(doc.file_content.length) %> chars</span></td>
+              <td>
+                <%= button_to "✕ Remove", rag_document_path(doc), method: :delete,
+                      data: { confirm: "Remove \"#{doc.filename}\" from your RAG library?" },
+                      class: "btn btn-danger" %>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  <% end %>
+</div>
+
+<%# ── Upload form ─────────────────────────────────────────────────────────── %>
+<div class="card upload-card">
+  <div class="card-title">➕ Add Document</div>
+
+  <%= form_with url: rag_documents_path, method: :post, local: true,
+        html: { enctype: "multipart/form-data" } do |f| %>
+
+    <div class="fields-grid">
+
+      <div class="field">
+        <label for="rag_keyword">Topic Keyword</label>
+        <%= text_field_tag "rag_document[keyword]", nil,
+              id: "rag_keyword", placeholder: "traveling",
+              required: true %>
+        <div class="hint">
+          Single word or short phrase the AI uses to match requests.
+          E.g. <em>traveling</em>, <em>regenerative energy</em>, <em>cooking</em>.
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="rag_description">Description (for AI prompt)</label>
+        <%= text_field_tag "rag_document[description]", nil,
+              id: "rag_description",
+              placeholder: "Trip planning, destination info, sightseeing, beaches, hotels" %>
+        <div class="hint">
+          Comma-separated synonyms and related terms — the AI reads this to decide
+          whether a request matches this topic.
+        </div>
+      </div>
+
+      <div class="field file-field">
+        <label for="rag_file">Document (PDF or EPUB, max 20 MB)</label>
+        <%= file_field_tag "rag_document[file]", id: "rag_file",
+              accept: ".pdf,.epub",
+              required: true,
+              style: "padding:.3rem 0;border:none;background:transparent" %>
+        <div class="format-note">
+          ✅ PDF &amp; EPUB are supported. Text is extracted on upload; the original file is
+          <strong>not</strong> stored. Scanned PDFs (images only) will produce no text.
+        </div>
+      </div>
+
+    </div>
+
+    <div style="margin-top:.75rem">
+      <button type="submit" class="btn btn-primary">Upload &amp; Extract</button>
+    </div>
+
+  <% end %>
+</div>
+
+<%# ── How it works ────────────────────────────────────────────────────────── %>
+<div class="card" style="background:#f8f9fa">
+  <div class="card-title">ℹ How RAG works</div>
+  <ol style="padding-left:1.2rem;font-size:.87rem;line-height:1.9">
+    <li>
+      <strong>Ping</strong> — FreeSpeech sends your voice transcript to the AI along with
+      all your RAG keywords. If the AI decides the request is about <em>traveling</em>,
+      it returns <code>RAG_TRAVELING</code>.
+    </li>
+    <li>
+      <strong>Factsheet</strong> — The AI reads the relevant portion of your document and
+      extracts the most important information as a short bullet-point factsheet.
+    </li>
+    <li>
+      <strong>Augmented answer</strong> — The original question is combined with the
+      factsheet ("take into account the following…") and the AI answers from your document.
+    </li>
+    <li>
+      <strong>Spoken</strong> — The answer is spoken through your car speaker via TTS.
+      The History tab shows the full routing chain:
+      <code>"nice beaches" → traveling → sardinia_guide.epub</code>
+    </li>
+  </ol>
+  <p style="font-size:.82rem;color:var(--muted);margin-top:.75rem">
+    💡 The AI only sees the portion of your document most relevant to the query
+    (up to ~30 000 characters). Keep answers concise — they must be comfortable to hear while driving.
+  </p>
+</div>

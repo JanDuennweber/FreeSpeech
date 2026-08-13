@@ -17,6 +17,9 @@ Rails.application.routes.draw do
   post   "/profile/regenerate-token", to: "profile#update", as: :regenerate_token,
                                       defaults: { regenerate_token: "1" }
 
+  # ── RAG Library (per-user document upload, any logged-in user) ───────────────
+  resources :rag_documents, only: [:index, :create, :destroy]
+
   # ── Admin: config & history ───────────────────────────────────────────────────
   get    "/config",         to: "config#index",    as: :config
   patch  "/config",         to: "config#update"

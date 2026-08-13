@@ -10,12 +10,14 @@ module Api
   #   Ping — one LLM call classifies the transcript into a category.
   #           Standard categories (MUSIC/WEATHER/…) return the query in the
   #           same response — no second call needed.
-  #           Custom topics (CUSTOM_EATING, CUSTOM_MOVIES, …) are also listed
-  #           in the ping prompt.
+  #           Custom topics (CUSTOM_*) and RAG topics (RAG_*) are also listed.
   #
-  #   Pong — when a custom topic is matched, a second focused LLM call
-  #           transforms the raw transcript into the app-specific search query.
-  #           E.g. "I like french fries" → "french fries near me" for Yelp.
+  #   Pong (Custom) — second LLM call transforms the transcript into a clean
+  #           app search query for the matched custom topic.
+  #
+  #   Pong (RAG)    — two further LLM calls:
+  #           1. Extract a factsheet from the matched user document.
+  #           2. Answer the original question augmented with the factsheet.
   #
   # Supported engines: ollama (OpenAI-compat), gemini (OpenAI-compat),
   #                    openai (OpenAI-compat), anthropic (Messages API).
@@ -41,7 +43,8 @@ module Api
 
       app_labels    = params[:app_labels].to_h rescue {}
       user          = api_user
-      custom_topics = CustomTopic.all.to_a   # cached for this request
+      custom_topics = CustomTopic.all.to_a        # cached for this request
+      rag_docs      = user ? user.rag_documents.to_a : []   # empty for anonymous calls
 
       # Effective AI config: user override → system Setting → engine default.
       engine  = user&.effective_ai_engine   || Setting["ai_engine"]   || "ollama"
@@ -51,20 +54,33 @@ module Api
       model   = user&.effective_ai_model    || Setting["ai_model"]    || deflt[:model]
       api_key = "ollama" if engine == "ollama" && api_key.blank?
 
-      # ── Ping: classify into standard or custom category ──────────────────────
-      ping_prompt = build_ping_prompt(transcript, app_labels, custom_topics)
+      # ── Ping: classify into standard, custom, or RAG category ──────────────────
+      ping_prompt = build_ping_prompt(transcript, app_labels, custom_topics, rag_docs)
 
       begin
         ping_text = fetch_llm_text(engine, base_url, api_key, model, ping_prompt, max_tokens: 256)
-        result    = parse_ping_json(ping_text, custom_topics)
+        result    = parse_ping_json(ping_text, custom_topics, rag_docs)
 
-        # ── Pong: for custom topics, transform the transcript into the app query ─
-        if result[:category] == "CUSTOM" && result[:topic]
+        if result[:category] == "RAG" && result[:rag_doc]
+          # ── RAG pong: factsheet extraction + augmented answer ─────────────────
+          doc        = result.delete(:rag_doc)
+          ping_query = result[:query]
+
+          factsheet  = fetch_rag_factsheet(transcript, doc, engine, base_url, api_key, model)
+          answer     = fetch_rag_answer(transcript, factsheet, doc, engine, base_url, api_key, model)
+          answer     = correct_grammar(answer) if engine == "ollama" && Setting["grammar_correct"] != "0"
+
+          result[:category]      = "NONE"
+          result[:message]       = answer
+          result[:routing_chain] = "\"#{ping_query}\" → #{doc.keyword} → #{doc.filename}"
+
+        elsif result[:category] == "CUSTOM" && result[:topic]
+          # ── Custom topic pong: transform the transcript into the app query ─────
           topic      = result.delete(:topic)
           ping_query = result[:query]   # keyword the ping extracted — saved for routing chain
 
-          pong_query       = fetch_pong_query(transcript, topic, engine, base_url, api_key, model)
-          result[:query]   = pong_query
+          pong_query         = fetch_pong_query(transcript, topic, engine, base_url, api_key, model)
+          result[:query]     = pong_query
           result[:app_label] = topic.app_label
 
           # Target routing: app deep-link OR site-restricted web search
@@ -84,11 +100,17 @@ module Api
           # "french fries" → Eating → Yelp
           # "tell me a joke" → Jokes → punscorner.com, reddit.com/r/Jokes
           result[:routing_chain] = "\"#{ping_query}\" → #{topic.name} → #{topic.target_display}"
-        end
 
-        # Grammar-correct the spoken message when using Ollama.
-        if engine == "ollama" && Setting["grammar_correct"] != "0" && result[:message].present?
-          result[:message] = correct_grammar(result[:message])
+          # Grammar-correct the spoken message when using Ollama.
+          if engine == "ollama" && Setting["grammar_correct"] != "0" && result[:message].present?
+            result[:message] = correct_grammar(result[:message])
+          end
+
+        else
+          # Standard category — grammar-correct the NONE conversational answer.
+          if engine == "ollama" && Setting["grammar_correct"] != "0" && result[:message].present?
+            result[:message] = correct_grammar(result[:message])
+          end
         end
 
         result[:ai] = engine
@@ -104,7 +126,7 @@ module Api
 
     # ── Ping helpers ───────────────────────────────────────────────────────────
 
-    def build_ping_prompt(transcript, app_labels, custom_topics)
+    def build_ping_prompt(transcript, app_labels, custom_topics, rag_docs = [])
       standard_lines = [
         ["MUSIC",      "Music"],
         ["WEATHER",    "Weather"],
@@ -117,13 +139,22 @@ module Api
         "- #{t.slug}: #{t.description} → app: #{t.app_label}"
       end
 
-      all_lines = standard_lines + custom_lines
+      # RAG topics from the authenticated user's personal document library.
+      # Format: RAG_KEYWORD: description → document: filename
+      rag_lines = rag_docs.map do |d|
+        "- #{d.slug}: #{d.description.presence || d.keyword} → document: #{d.filename}"
+      end
+
+      all_lines = standard_lines + custom_lines + rag_lines
+
+      custom_pat = custom_topics.any? ? "CUSTOM_*, " : ""
+      rag_pat    = rag_docs.any?      ? "RAG_*, "    : ""
 
       <<~PROMPT.strip
         You are an intent classifier and voice assistant for a car.
         The user's speech was transcribed by Whisper and may contain recognition errors.
 
-        Available categories with their configured apps:
+        Available categories with their configured apps and documents:
         #{all_lines.join("\n")}
         - NONE: the request cannot be mapped to any of the above categories
 
@@ -134,22 +165,36 @@ module Api
 
         Rules:
         - category  one of the keys listed above (MUSIC, WEATHER, NAVIGATION, CALL, WEB_SEARCH,
-                    CUSTOM_*, or NONE)
+                    #{custom_pat}#{rag_pat}or NONE)
         - query     extracted subject (artist, destination, search term, etc.); empty for WEATHER/CALL
         - message   spoken text in the user's language:
                       for standard categories — short confirmation, max 8 words
                       for CUSTOM_* — a short confirmation mentioning the app (max 10 words)
+                      for RAG_* — a brief acknowledgement that you are looking in the document, max 10 words
                       for NONE — answer conversationally in 1-2 sentences (max 40 words) from general
                       knowledge if possible; if the question requires personal data or real-time info
                       you do not have, acknowledge that briefly and suggest the nearest applicable command
       PROMPT
     end
 
-    # Parses the ping JSON; recognises both standard and CUSTOM_* categories.
-    def parse_ping_json(text, custom_topics)
+    # Parses the ping JSON; recognises standard, CUSTOM_*, and RAG_* categories.
+    def parse_ping_json(text, custom_topics, rag_docs = [])
       text = text.gsub(/\A```(?:json)?\n?/, "").gsub(/\n?```\z/, "").strip
       obj      = JSON.parse(text)
       category = obj["category"].to_s.upcase
+
+      # RAG document match? (checked before CUSTOM so user docs take priority)
+      if category.start_with?("RAG_")
+        matched = rag_docs.find { |d| d.slug == category }
+        if matched
+          return { category: "RAG",
+                   rag_doc:  matched,
+                   query:    obj["query"].to_s,
+                   message:  obj["message"].to_s.presence }
+        end
+        # Unknown RAG_* key — treat as NONE
+        category = "NONE"
+      end
 
       # Custom topic match?
       if category.start_with?("CUSTOM_")
@@ -172,7 +217,59 @@ module Api
       raise "bad AI JSON (#{e.message}): #{text.first(200)}"
     end
 
-    # ── Pong helper ────────────────────────────────────────────────────────────
+    # ── RAG pong helpers ───────────────────────────────────────────────────────
+
+    # Step 1: Ask the LLM to extract a concise factsheet from the user's document
+    # that is relevant to the query.  Sends up to 30 000 chars of document text.
+    def fetch_rag_factsheet(transcript, doc, engine, base_url, api_key, model)
+      excerpt = doc.content_excerpt(query: transcript)
+      prompt  = <<~PROMPT.strip
+        You are a research assistant helping a driver get a quick answer.
+        The user asked: "#{transcript}"
+
+        Below is an excerpt from a document titled "#{doc.filename}"
+        about the topic "#{doc.keyword}".
+
+        Extract the most relevant information to answer the user's question.
+        Respond with short, concise bullet points only. Maximum 200 words.
+        Do NOT include a preamble — start directly with the bullets.
+
+        DOCUMENT EXCERPT:
+        #{excerpt}
+      PROMPT
+
+      fetch_llm_text(engine, base_url, api_key, model, prompt,
+                     max_tokens: 500, read_timeout: 60).strip
+    rescue => e
+      Rails.logger.warn "RAG factsheet failed (#{doc.keyword}): #{e.message}"
+      ""   # empty factsheet — answer will still be attempted from general knowledge
+    end
+
+    # Step 2: Combine the original transcript with the factsheet and ask the LLM
+    # to produce a short, spoken-friendly answer.
+    def fetch_rag_answer(transcript, factsheet, doc, engine, base_url, api_key, model)
+      context = if factsheet.present?
+        "\n\nTake into account the following information from \"#{doc.filename}\":\n#{factsheet}"
+      else
+        ""
+      end
+
+      prompt = <<~PROMPT.strip
+        Answer this question: "#{transcript}"#{context}
+
+        Reply in 2-4 natural spoken sentences. Be specific and helpful.
+        Use the provided document information when available.
+        Reply in the same language as the user's question.
+      PROMPT
+
+      fetch_llm_text(engine, base_url, api_key, model, prompt,
+                     max_tokens: 200, read_timeout: 30).strip
+    rescue => e
+      Rails.logger.warn "RAG answer failed (#{doc.keyword}): #{e.message}"
+      transcript   # graceful fallback
+    end
+
+    # ── Custom topic pong helper ───────────────────────────────────────────────
 
     # Second LLM call: transform the user's raw transcript into a clean search
     # query for the custom topic's target app.
@@ -197,10 +294,12 @@ module Api
 
     # Returns the raw text content from the model (no JSON parsing).
     # Works for both OpenAI-compatible engines and the Anthropic Messages API.
-    def fetch_llm_text(engine, base_url, api_key, model, prompt, max_tokens: 256)
+    # +read_timeout+ can be raised for calls that send large document excerpts
+    # (RAG factsheet extraction may take longer than the default 25 s).
+    def fetch_llm_text(engine, base_url, api_key, model, prompt, max_tokens: 256, read_timeout: 25)
       if engine == "anthropic"
         uri  = URI("#{base_url.chomp('/')}/v1/messages")
-        http = build_http(uri)
+        http = build_http(uri, read_timeout: read_timeout)
         req  = Net::HTTP::Post.new(uri.request_uri,
                  "Content-Type"      => "application/json",
                  "x-api-key"         => api_key,
@@ -213,7 +312,7 @@ module Api
       else
         # OpenAI-compatible: Ollama, Gemini, OpenAI
         uri  = URI("#{base_url.chomp('/')}/chat/completions")
-        http = build_http(uri)
+        http = build_http(uri, read_timeout: read_timeout)
         req  = Net::HTTP::Post.new(uri.request_uri,
                  "Content-Type"  => "application/json",
                  "Authorization" => "Bearer #{api_key}")
@@ -234,11 +333,11 @@ module Api
       parse_ping_json(fetch_llm_text("anthropic", base_url, api_key, model, prompt), [])
     end
 
-    def build_http(uri)
+    def build_http(uri, read_timeout: 25)
       http              = Net::HTTP.new(uri.host, uri.port)
       http.use_ssl      = uri.scheme == "https"
       http.open_timeout = 10
-      http.read_timeout = 25
+      http.read_timeout = read_timeout
       http
     end
 

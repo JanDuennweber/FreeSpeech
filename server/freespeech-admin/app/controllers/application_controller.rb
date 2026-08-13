@@ -35,6 +35,7 @@ class ApplicationController < ActionController::Base
     when "config", "languages" then :config
     when "history"              then :history
     when "profile"              then :profile
+    when "rag_documents"        then :rag
     else :config
     end
   end
