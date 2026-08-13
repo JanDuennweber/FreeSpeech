@@ -53,6 +53,9 @@
     <string name="wake_notification_title">FreeSpeech — Palabra de activación activa</string>
     <string name="wake_notification_text">Esperando \"%1$s\"…</string>
     <string name="wake_notification_stop">Parar</string>
+    <string name="wake_trigger_channel">Activador de palabra de activación</string>
+    <string name="wake_trigger_title">¡FreeSpeech te ha escuchado!</string>
+    <string name="wake_trigger_text">Toca para abrir FreeSpeech y decir tu comando.</string>
 
     <!-- Motores de IA -->
     <string name="engine_gemini">Gemini (gratuito, Google)</string>

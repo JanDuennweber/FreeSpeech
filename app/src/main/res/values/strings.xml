@@ -54,6 +54,9 @@
     <string name="wake_notification_title">FreeSpeech — Wake word active</string>
     <string name="wake_notification_text">Listening for \"%1$s\"…</string>
     <string name="wake_notification_stop">Stop</string>
+    <string name="wake_trigger_channel">Wake word trigger</string>
+    <string name="wake_trigger_title">FreeSpeech heard you!</string>
+    <string name="wake_trigger_text">Tap to open FreeSpeech and speak your command.</string>
 
     <!-- AI engine spinner labels -->
     <string name="engine_gemini">Gemini (free, Google)</string>

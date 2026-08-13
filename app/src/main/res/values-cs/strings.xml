@@ -53,6 +53,9 @@
     <string name="wake_notification_title">FreeSpeech — Aktivační slovo aktivní</string>
     <string name="wake_notification_text">Čekám na \"%1$s\"…</string>
     <string name="wake_notification_stop">Zastavit</string>
+    <string name="wake_trigger_channel">Spouštěč aktivačního slova</string>
+    <string name="wake_trigger_title">FreeSpeech vás slyšel!</string>
+    <string name="wake_trigger_text">Klepněte pro otevření FreeSpeech a vyslovte svůj příkaz.</string>
 
     <!-- Moduly AI -->
     <string name="engine_gemini">Gemini (zdarma, Google)</string>

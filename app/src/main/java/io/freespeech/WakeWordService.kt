@@ -12,7 +12,9 @@ import android.media.AudioRecord
 import android.media.MediaRecorder
 import android.os.IBinder
 import android.util.Log
+import androidx.car.app.notification.CarAppExtender
 import androidx.core.app.NotificationCompat
+import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 
 /**
@@ -39,9 +41,14 @@ class WakeWordService : Service() {
 
     companion object {
         private const val TAG = "WakeWord"
-        private const val CHANNEL_ID    = "wake_word"
-        private const val NOTIF_ID      = 101
-        private const val ACTION_STOP   = "io.freespeech.WAKE_STOP"
+        private const val CHANNEL_ID         = "wake_word"
+        private const val NOTIF_ID           = 101
+        private const val ACTION_STOP        = "io.freespeech.WAKE_STOP"
+
+        /** Notification channel / ID for the car-screen trigger banner. */
+        private const val CHANNEL_TRIGGER_ID  = "wake_trigger"
+        const val WAKE_TRIGGER_NOTIF_ID       = 102
+        private const val WAKE_TRIGGER_REQUEST = 200
 
         private const val SAMPLE_RATE       = 16000
         private const val SILENCE_RMS       = 400f
@@ -76,6 +83,7 @@ class WakeWordService : Service() {
     override fun onCreate() {
         super.onCreate()
         createChannel()
+        createTriggerChannel()
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -145,8 +153,10 @@ class WakeWordService : Service() {
                         }
                         commandInProgress = false
                     } else {
-                        // Car screen not visible — log and continue (no action possible).
-                        Log.d(TAG, "Wake word fired but car screen is not visible")
+                        // Car screen not visible — post a HUN on the car screen so the driver
+                        // can tap to bring FreeSpeech to the foreground with one gesture.
+                        Log.i(TAG, "Wake word fired; car screen not visible — posting trigger notification")
+                        postTriggerNotification()
                     }
                 }
 
@@ -237,5 +247,55 @@ class WakeWordService : Service() {
             .setSilent(true)
             .addAction(0, getString(R.string.wake_notification_stop), stopPi)
             .build()
+    }
+
+    // ── Trigger notification (wake word fired, car screen not visible) ──────────
+
+    private fun createTriggerChannel() {
+        val ch = NotificationChannel(
+            CHANNEL_TRIGGER_ID,
+            getString(R.string.wake_trigger_channel),
+            NotificationManager.IMPORTANCE_HIGH,   // HIGH = HUN on car screen
+        ).apply {
+            description = getString(R.string.wake_trigger_channel)
+            setShowBadge(false)
+        }
+        getSystemService(NotificationManager::class.java).createNotificationChannel(ch)
+    }
+
+    /**
+     * Posts a heads-up notification on the car screen when the wake word fires but
+     * [FreeSpeechCarScreen] is not currently visible.  Tapping the notification
+     * (or the steering-wheel OK button) delivers the content [PendingIntent] to the
+     * [FreeSpeechCarAppService], which the Car App Library routes as a new session
+     * intent — bringing FreeSpeech to the car-screen foreground.
+     *
+     * [FreeSpeechCarScreen.onStart] cancels this notification once the screen is visible.
+     */
+    private fun postTriggerNotification() {
+        // Intent that, when tapped on the car screen, resumes / surfaces the car app.
+        val carAppIntent = Intent(this, FreeSpeechCarAppService::class.java)
+        val contentPi = PendingIntent.getService(
+            this, WAKE_TRIGGER_REQUEST, carAppIntent,
+            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
+        )
+
+        val notification = NotificationCompat.Builder(this, CHANNEL_TRIGGER_ID)
+            .setSmallIcon(R.mipmap.ic_launcher)
+            .setContentTitle(getString(R.string.wake_trigger_title))
+            .setContentText(getString(R.string.wake_trigger_text))
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setAutoCancel(true)
+            .extend(
+                CarAppExtender.Builder()
+                    .setContentTitle(getString(R.string.wake_trigger_title))
+                    .setContentText(getString(R.string.wake_trigger_text))
+                    .setContentIntent(contentPi)
+                    .setImportance(NotificationManager.IMPORTANCE_HIGH)
+                    .build()
+            )
+            .build()
+
+        NotificationManagerCompat.from(this).notify(WAKE_TRIGGER_NOTIF_ID, notification)
     }
 }

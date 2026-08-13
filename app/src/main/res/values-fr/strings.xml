@@ -53,6 +53,9 @@
     <string name="wake_notification_title">FreeSpeech — Mot de réveil actif</string>
     <string name="wake_notification_text">En attente de \"%1$s\"…</string>
     <string name="wake_notification_stop">Arrêter</string>
+    <string name="wake_trigger_channel">Déclencheur mot de réveil</string>
+    <string name="wake_trigger_title">FreeSpeech vous a entendu !</string>
+    <string name="wake_trigger_text">Appuyez pour ouvrir FreeSpeech et dicter votre commande.</string>
 
     <!-- Moteurs IA -->
     <string name="engine_gemini">Gemini (gratuit, Google)</string>

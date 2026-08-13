@@ -12,6 +12,7 @@ import androidx.car.app.model.Action
 import androidx.car.app.model.ActionStrip
 import androidx.car.app.model.MessageTemplate
 import androidx.car.app.model.Template
+import androidx.core.app.NotificationManagerCompat
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 
@@ -48,6 +49,10 @@ class FreeSpeechCarScreen(carContext: CarContext) : Screen(carContext) {
         // hands-free when the wake word is detected in the background.
         lifecycle.addObserver(object : DefaultLifecycleObserver {
             override fun onStart(owner: LifecycleOwner) {
+                // Dismiss any pending wake-word trigger notification (the driver has
+                // arrived on this screen — the nudge is no longer needed).
+                NotificationManagerCompat.from(carContext)
+                    .cancel(WakeWordService.WAKE_TRIGGER_NOTIF_ID)
                 WakeWordService.wakeListener = { startTranscription() }
                 startTranscription()
             }
