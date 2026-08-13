@@ -33,9 +33,10 @@ class AiClassifier(
     companion object {
         private const val TAG = "AiClassifier"
 
-        const val ENGINE_GEMINI = "gemini"
-        const val ENGINE_OPENAI = "openai"
-        const val ENGINE_OLLAMA = "ollama"
+        const val ENGINE_GEMINI    = "gemini"
+        const val ENGINE_OPENAI    = "openai"
+        const val ENGINE_OLLAMA    = "ollama"
+        const val ENGINE_ANTHROPIC = "anthropic"
 
         data class Defaults(val baseUrl: String, val model: String, val apiKey: String)
 
@@ -56,13 +57,18 @@ class AiClassifier(
                 model   = "qwen2.5:7b",
                 apiKey  = "ollama",  // Ollama accepts any non-empty value
             ),
+            ENGINE_ANTHROPIC to Defaults(
+                baseUrl = "https://api.anthropic.com",
+                model   = "claude-3-5-haiku-20241022",
+                apiKey  = "",
+            ),
         )
 
         /**
          * Ordered engine keys — UI labels are string resources, not hardcoded here,
          * so the spinner in SettingsActivity can use the phone's locale.
          */
-        val ENGINE_KEYS = listOf(ENGINE_GEMINI, ENGINE_OPENAI, ENGINE_OLLAMA)
+        val ENGINE_KEYS = listOf(ENGINE_GEMINI, ENGINE_OPENAI, ENGINE_OLLAMA, ENGINE_ANTHROPIC)
     }
 
     private val http = OkHttpClient.Builder()
@@ -83,7 +89,11 @@ class AiClassifier(
         val apiKey  = prefs.getString("ai_api_key",  def.apiKey)!!.let { if (it.isBlank()) def.apiKey else it }
         val model   = prefs.getString("ai_model",    def.model)!!.let  { if (it.isBlank()) def.model else it }
 
-        val responseJson = callChatApi(baseUrl, apiKey, model, buildPrompt(transcript))
+        val prompt = buildPrompt(transcript)
+        val responseJson = if (engine == ENGINE_ANTHROPIC)
+            callAnthropicApi(baseUrl, apiKey, model, prompt)
+        else
+            callChatApi(baseUrl, apiKey, model, prompt)
         parseResponse(responseJson)
     } catch (e: Exception) {
         Log.w(TAG, "AI classification failed: ${e.message}")
@@ -136,6 +146,7 @@ Rules:
 
     // ── HTTP ───────────────────────────────────────────────────────────────────
 
+    /** OpenAI-compatible chat completions (Gemini, OpenAI, Ollama). Returns the model's text. */
     private fun callChatApi(baseUrl: String, apiKey: String, model: String, prompt: String): String {
         val body = JSONObject()
             .put("model", model)
@@ -150,24 +161,53 @@ Rules:
             .build()
 
         http.newCall(request).execute().use { resp ->
-            val text = resp.body?.string() ?: throw Exception("Empty response")
-            if (!resp.isSuccessful) throw Exception("HTTP ${resp.code}: ${text.take(200)}")
-            return text
+            val raw = resp.body?.string() ?: throw Exception("Empty response")
+            if (!resp.isSuccessful) throw Exception("HTTP ${resp.code}: ${raw.take(200)}")
+            return JSONObject(raw)
+                .getJSONArray("choices")
+                .getJSONObject(0)
+                .getJSONObject("message")
+                .getString("content")
+                .trim()
+        }
+    }
+
+    /**
+     * Anthropic Messages API.
+     * Endpoint: POST <baseUrl>/v1/messages
+     * Auth:     x-api-key header + anthropic-version: 2023-06-01
+     * Response: content[0].text  (not choices[0].message.content)
+     */
+    private fun callAnthropicApi(baseUrl: String, apiKey: String, model: String, prompt: String): String {
+        val body = JSONObject()
+            .put("model", model)
+            .put("max_tokens", 150)
+            .put("messages", JSONArray().put(JSONObject().put("role", "user").put("content", prompt)))
+
+        val request = Request.Builder()
+            .url("$baseUrl/v1/messages")
+            .addHeader("x-api-key", apiKey)
+            .addHeader("anthropic-version", "2023-06-01")
+            .addHeader("Content-Type", "application/json")
+            .post(body.toString().toRequestBody("application/json".toMediaType()))
+            .build()
+
+        http.newCall(request).execute().use { resp ->
+            val raw = resp.body?.string() ?: throw Exception("Empty response")
+            if (!resp.isSuccessful) throw Exception("HTTP ${resp.code}: ${raw.take(200)}")
+            return JSONObject(raw)
+                .getJSONArray("content")
+                .getJSONObject(0)
+                .getString("text")
+                .trim()
         }
     }
 
     // ── Parse ──────────────────────────────────────────────────────────────────
 
-    private fun parseResponse(apiJson: String): ClassifiedIntent? {
-        // Unwrap the chat completions envelope → get the model's text output.
-        val text = JSONObject(apiJson)
-            .getJSONArray("choices")
-            .getJSONObject(0)
-            .getJSONObject("message")
-            .getString("content")
-            .trim()
-            .stripFences()
-
+    /** Parses the model's content text into a [ClassifiedIntent]. */
+    private fun parseResponse(contentText: String): ClassifiedIntent? {
+        val text = contentText.stripFences()
         Log.d(TAG, "AI reply: $text")
 
         val obj      = JSONObject(text)

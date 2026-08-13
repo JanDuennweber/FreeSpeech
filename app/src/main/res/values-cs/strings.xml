@@ -71,11 +71,13 @@
     <string name="engine_gemini">Gemini (zdarma, Google)</string>
     <string name="engine_openai">OpenAI / GPT</string>
     <string name="engine_ollama">Ollama (lokální, soukromé)</string>
+    <string name="engine_anthropic">Anthropic / Claude</string>
 
     <!-- Nápověda k modulům AI -->
     <string name="engine_hint_gemini">Bezplatný klíč API na ai.google.dev — platební prostředek není vyžadován.</string>
     <string name="engine_hint_openai">Klíč API na platform.openai.com/api-keys. Nejlevnější model: gpt-4o-mini.</string>
     <string name="engine_hint_ollama">Ollama běží lokálně na vašem serveru — klíč API není potřeba. Doporučený model: qwen2.5:7b.</string>
+    <string name="engine_hint_anthropic">Klíč API na console.anthropic.com/settings/keys. Výchozí model: claude-3-5-haiku-20241022.</string>
 
     <!-- ── Volby aplikací ─────────────────────────────────────────────────────── -->
     <string name="app_option_system_default">Výchozí systémová volba</string>

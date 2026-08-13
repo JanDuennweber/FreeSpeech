@@ -163,6 +163,7 @@ class SettingsActivity : AppCompatActivity() {
             getString(R.string.engine_gemini),
             getString(R.string.engine_openai),
             getString(R.string.engine_ollama),
+            getString(R.string.engine_anthropic),
         )
         ArrayAdapter(this, android.R.layout.simple_spinner_item, engineLabels)
             .also { it.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item) }
@@ -199,9 +200,10 @@ class SettingsActivity : AppCompatActivity() {
 
     private fun updateEngineHint(hint: TextView, engineKey: String) {
         hint.text = when (engineKey) {
-            AiClassifier.ENGINE_GEMINI -> getString(R.string.engine_hint_gemini)
-            AiClassifier.ENGINE_OPENAI -> getString(R.string.engine_hint_openai)
-            AiClassifier.ENGINE_OLLAMA -> getString(R.string.engine_hint_ollama)
+            AiClassifier.ENGINE_GEMINI    -> getString(R.string.engine_hint_gemini)
+            AiClassifier.ENGINE_OPENAI    -> getString(R.string.engine_hint_openai)
+            AiClassifier.ENGINE_OLLAMA    -> getString(R.string.engine_hint_ollama)
+            AiClassifier.ENGINE_ANTHROPIC -> getString(R.string.engine_hint_anthropic)
             else -> ""
         }
     }

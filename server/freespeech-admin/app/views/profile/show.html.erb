@@ -30,32 +30,46 @@
     </p>
     <div class="fields-grid">
       <div class="field">
-        <%= label_tag "user[ai_engine]", "Engine override" %>
+        <%= label_tag "user[ai_engine]", "Engine" %>
         <%= select_tag "user[ai_engine]",
               options_for_select([
-                ["— use server default —",   ""],
+                ["— use server default (#{Setting["ai_engine"] || "ollama"}) —", ""],
                 ["Ollama (local / private)",  "ollama"],
                 ["Gemini (free, Google)",     "gemini"],
                 ["OpenAI / GPT",              "openai"],
+                ["Anthropic / Claude",        "anthropic"],
               ], current_user.ai_engine.to_s) %>
       </div>
       <div class="field">
-        <%= label_tag "user[ai_model]", "Model override" %>
+        <%= label_tag "user[ai_model]", "Model" %>
         <%= text_field_tag "user[ai_model]", current_user.ai_model,
-              placeholder: "e.g. gemini-2.0-flash-lite, qwen2.5:7b" %>
-      </div>
-      <div class="field">
-        <%= label_tag "user[ai_base_url]", "Base URL override" %>
-        <%= text_field_tag "user[ai_base_url]", current_user.ai_base_url,
-              placeholder: "https://generativelanguage.googleapis.com/v1beta/openai" %>
-        <div class="hint">Only needed for Ollama or custom endpoints; Gemini/OpenAI leave blank.</div>
+              placeholder: "leave blank for engine default" %>
+        <div class="hint">
+          Gemini: <code>gemini-2.0-flash-lite</code> &nbsp;·&nbsp;
+          OpenAI: <code>gpt-4o-mini</code> &nbsp;·&nbsp;
+          Anthropic: <code>claude-3-5-haiku-20241022</code> &nbsp;·&nbsp;
+          Ollama: <code>qwen2.5:7b</code>
+        </div>
       </div>
       <div class="field">
         <%= label_tag "user[ai_api_key]", "API Key" %>
         <%= password_field_tag "user[ai_api_key]", current_user.ai_api_key,
-              placeholder: "Leave blank to use server key or Ollama",
+              placeholder: "leave blank for Ollama or server default",
               autocomplete: "new-password" %>
-        <div class="hint">Gemini: free key at ai.google.dev · OpenAI: platform.openai.com/api-keys · Ollama: leave blank</div>
+        <div class="hint">
+          Gemini: <a href="https://ai.google.dev" target="_blank">ai.google.dev</a> (free) &nbsp;·&nbsp;
+          OpenAI: <a href="https://platform.openai.com/api-keys" target="_blank">platform.openai.com</a> &nbsp;·&nbsp;
+          Anthropic: <a href="https://console.anthropic.com/settings/keys" target="_blank">console.anthropic.com</a>
+        </div>
+      </div>
+      <div class="field">
+        <%= label_tag "user[ai_base_url]", "Base URL (optional)" %>
+        <%= text_field_tag "user[ai_base_url]", current_user.ai_base_url,
+              placeholder: "leave blank to use engine default" %>
+        <div class="hint">
+          Only needed for Ollama (<code>http://host:11434</code>) or a self-hosted proxy.
+          Gemini, OpenAI and Anthropic work without this.
+        </div>
       </div>
     </div>
     <div style="margin-top:.75rem">

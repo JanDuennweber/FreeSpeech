@@ -71,11 +71,13 @@
     <string name="engine_gemini">Gemini (gratuito, Google)</string>
     <string name="engine_openai">OpenAI / GPT</string>
     <string name="engine_ollama">Ollama (locale, privato)</string>
+    <string name="engine_anthropic">Anthropic / Claude</string>
 
     <!-- Descrizioni dei motori IA -->
     <string name="engine_hint_gemini">Chiave API gratuita su ai.google.dev — nessun metodo di pagamento richiesto.</string>
     <string name="engine_hint_openai">Chiave API su platform.openai.com/api-keys. Modello più economico: gpt-4o-mini.</string>
     <string name="engine_hint_ollama">Ollama funziona localmente sul tuo server — nessuna chiave API necessaria. Modello consigliato: qwen2.5:7b.</string>
+    <string name="engine_hint_anthropic">Chiave API su console.anthropic.com/settings/keys. Modello predefinito: claude-3-5-haiku-20241022.</string>
 
     <!-- ── Opzioni applicazione ───────────────────────────────────────────────── -->
     <string name="app_option_system_default">Scelta di sistema</string>

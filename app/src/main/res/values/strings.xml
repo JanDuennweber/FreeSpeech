@@ -72,11 +72,13 @@
     <string name="engine_gemini">Gemini (free, Google)</string>
     <string name="engine_openai">OpenAI / GPT</string>
     <string name="engine_ollama">Ollama (local, private)</string>
+    <string name="engine_anthropic">Anthropic / Claude</string>
 
     <!-- AI engine hints (shown below engine spinner) -->
     <string name="engine_hint_gemini">Free API key at ai.google.dev — no payment method required.</string>
     <string name="engine_hint_openai">API key at platform.openai.com/api-keys. Cheapest model: gpt-4o-mini.</string>
     <string name="engine_hint_ollama">Ollama runs locally on your server — no API key needed. Recommended model: qwen2.5:7b.</string>
+    <string name="engine_hint_anthropic">API key at console.anthropic.com/settings/keys. Default model: claude-3-5-haiku-20241022.</string>
 
     <!-- ── App option labels (generic entries in category spinners) ─────────── -->
     <string name="app_option_system_default">System default</string>

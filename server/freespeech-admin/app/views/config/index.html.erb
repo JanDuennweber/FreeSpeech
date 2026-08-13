@@ -29,9 +29,10 @@
         <%= label_tag "settings[ai_engine]", "Engine" %>
         <%= select_tag "settings[ai_engine]",
               options_for_select([
-                ["Ollama (local / private)", "ollama"],
-                ["Gemini (free, Google)",    "gemini"],
-                ["OpenAI / GPT",             "openai"],
+                ["Ollama (local / private)",        "ollama"],
+                ["Gemini (free, Google)",            "gemini"],
+                ["OpenAI / GPT",                     "openai"],
+                ["Anthropic / Claude",               "anthropic"],
               ], @settings["ai_engine"]) %>
         <div class="hint">Which AI backend classifies voice commands into music / navigation / weather / …</div>
       </div>
@@ -39,13 +40,20 @@
         <%= label_tag "settings[ai_model]", "Model / Version" %>
         <%= text_field_tag "settings[ai_model]", @settings["ai_model"],
               placeholder: "qwen2.5:7b" %>
-        <div class="hint">Ollama: qwen2.5:7b, qwen2.5:14b, … &nbsp;|&nbsp; OpenAI: gpt-4o-mini &nbsp;|&nbsp; Gemini: gemini-1.5-flash</div>
+        <div class="hint">
+          Ollama: qwen2.5:7b &nbsp;|&nbsp; Gemini: gemini-2.0-flash-lite &nbsp;|&nbsp;
+          OpenAI: gpt-4o-mini &nbsp;|&nbsp; Anthropic: claude-3-5-haiku-20241022
+        </div>
       </div>
       <div class="field">
-        <%= label_tag "settings[ai_base_url]", "Base URL (Ollama / custom OpenAI)" %>
+        <%= label_tag "settings[ai_base_url]", "Base URL (Ollama / custom endpoint)" %>
         <%= text_field_tag "settings[ai_base_url]", @settings["ai_base_url"],
               placeholder: "http://localhost:11434" %>
-        <div class="hint">Leave empty for hosted Gemini / OpenAI. Required for Ollama and self-hosted endpoints.</div>
+        <div class="hint">
+          Leave empty to use the engine default.
+          Ollama: <code>http://localhost:11434</code> &nbsp;|&nbsp;
+          Anthropic: <code>https://api.anthropic.com</code>
+        </div>
       </div>
       <div class="field">
         <%= label_tag "settings[ai_api_key]", "API Key" %>

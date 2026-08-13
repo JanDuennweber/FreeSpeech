@@ -7,9 +7,22 @@ module Api
   # Classifies a voice transcript using the configured AI engine.
   # Optional: Authorization: Bearer <api_token> to use the user's personal AI config.
   # Anonymous requests use the system default (Ollama).
+  #
+  # Supported engines (value of ai_engine setting / user override):
+  #   ollama     – OpenAI-compatible local server (any non-empty key accepted)
+  #   gemini     – Google Gemini via the OpenAI-compatible endpoint
+  #   openai     – OpenAI chat completions API
+  #   anthropic  – Anthropic Messages API (different format from OpenAI)
   class ClassifyController < BaseController
 
     VALID_CATEGORIES = %w[MUSIC WEATHER NAVIGATION CALL WEB_SEARCH NONE].freeze
+
+    ENGINE_DEFAULTS = {
+      "ollama"    => { base_url: "http://localhost:11434",                                              model: "qwen2.5:7b",                    api_key: "ollama" },
+      "gemini"    => { base_url: "https://generativelanguage.googleapis.com/v1beta/openai",             model: "gemini-2.0-flash-lite",         api_key: "" },
+      "openai"    => { base_url: "https://api.openai.com/v1",                                           model: "gpt-4o-mini",                   api_key: "" },
+      "anthropic" => { base_url: "https://api.anthropic.com",                                           model: "claude-3-5-haiku-20241022",     api_key: "" },
+    }.freeze
 
     def create
       transcript = params[:transcript].to_s.strip
@@ -19,79 +32,109 @@ module Api
       end
 
       app_labels = params[:app_labels].to_h rescue {}
-      user = api_user
+      user       = api_user
 
-      # Determine effective AI config: user override > system default.
-      engine   = user&.effective_ai_engine   || Setting["ai_engine"]   || "ollama"
-      api_key  = user&.effective_ai_api_key  || Setting["ai_api_key"]  || ""
-      base_url = user&.effective_ai_base_url || Setting["ai_base_url"] || "http://localhost:11434"
-      model    = user&.effective_ai_model    || Setting["ai_model"]    || "qwen2.5:7b"
+      # Effective config: user override → system Setting → engine default.
+      engine  = user&.effective_ai_engine   || Setting["ai_engine"]   || "ollama"
+      deflt   = ENGINE_DEFAULTS[engine]     || ENGINE_DEFAULTS["ollama"]
 
-      # Ollama uses any non-empty key value; hosted engines need a real key.
+      api_key  = user&.effective_ai_api_key  || Setting["ai_api_key"]  || deflt[:api_key]
+      base_url = user&.effective_ai_base_url || Setting["ai_base_url"] || deflt[:base_url]
+      model    = user&.effective_ai_model    || Setting["ai_model"]    || deflt[:model]
+
       api_key = "ollama" if engine == "ollama" && api_key.blank?
 
       prompt = build_prompt(transcript, app_labels)
 
       begin
-        result = call_ai(base_url.chomp("/"), api_key, model, prompt)
+        result = engine == "anthropic" ?
+                   call_anthropic(base_url.chomp("/"), api_key, model, prompt) :
+                   call_openai_compat(base_url.chomp("/"), api_key, model, prompt)
         result[:ai] = engine
         render json: result
       rescue => e
-        Rails.logger.warn "ClassifyController: AI call failed: #{e.message}"
+        Rails.logger.warn "ClassifyController: AI call failed (#{engine}): #{e.message}"
         render json: { error: "AI classification unavailable: #{e.message}" }, status: :service_unavailable
       end
     end
 
     private
 
-    # ── AI call (OpenAI-compatible chat completions) ────────────────────────────
+    # ── OpenAI-compatible chat completions (Ollama, Gemini, OpenAI) ────────────
 
-    def call_ai(base_url, api_key, model, prompt)
+    def call_openai_compat(base_url, api_key, model, prompt)
       uri  = URI("#{base_url}/chat/completions")
-      http = Net::HTTP.new(uri.host, uri.port)
-      http.use_ssl         = uri.scheme == "https"
-      http.open_timeout    = 10
-      http.read_timeout    = 25
-
-      body = {
+      http = build_http(uri)
+      req  = Net::HTTP::Post.new(uri.request_uri,
+               "Content-Type"  => "application/json",
+               "Authorization" => "Bearer #{api_key}")
+      req.body = {
         model:       model,
         messages:    [{ role: "user", content: prompt }],
         temperature: 0,
         max_tokens:  150,
       }.to_json
 
-      req = Net::HTTP::Post.new(uri.request_uri,
-        "Content-Type"  => "application/json",
-        "Authorization" => "Bearer #{api_key}",
-      )
-      req.body = body
+      resp = http.request(req)
+      raise "HTTP #{resp.code}: #{resp.body.to_s.first(200)}" unless resp.is_a?(Net::HTTPSuccess)
+
+      envelope = JSON.parse(resp.body)
+      text     = envelope.dig("choices", 0, "message", "content").to_s.strip
+      parse_intent_json(text)
+    end
+
+    # ── Anthropic Messages API ─────────────────────────────────────────────────
+    # Endpoint:  POST <base_url>/v1/messages
+    # Auth:      x-api-key header + anthropic-version header
+    # Response:  content[0].text  (not choices[0].message.content)
+
+    def call_anthropic(base_url, api_key, model, prompt)
+      uri  = URI("#{base_url}/v1/messages")
+      http = build_http(uri)
+      req  = Net::HTTP::Post.new(uri.request_uri,
+               "Content-Type"       => "application/json",
+               "x-api-key"          => api_key,
+               "anthropic-version"  => "2023-06-01")
+      req.body = {
+        model:      model,
+        max_tokens: 150,
+        messages:   [{ role: "user", content: prompt }],
+      }.to_json
 
       resp = http.request(req)
       raise "HTTP #{resp.code}: #{resp.body.to_s.first(200)}" unless resp.is_a?(Net::HTTPSuccess)
 
-      parse_chat_response(resp.body)
+      envelope = JSON.parse(resp.body)
+      text     = envelope.dig("content", 0, "text").to_s.strip
+      parse_intent_json(text)
     end
 
-    def parse_chat_response(json_str)
-      envelope = JSON.parse(json_str)
-      text     = envelope.dig("choices", 0, "message", "content").to_s.strip
-      # Strip markdown fences the model may add despite instructions.
+    # ── Shared helpers ─────────────────────────────────────────────────────────
+
+    def build_http(uri)
+      http              = Net::HTTP.new(uri.host, uri.port)
+      http.use_ssl      = uri.scheme == "https"
+      http.open_timeout = 10
+      http.read_timeout = 25
+      http
+    end
+
+    def parse_intent_json(text)
+      # Strip markdown code fences some models add despite instructions.
       text = text.gsub(/\A```(?:json)?\n?/, "").gsub(/\n?```\z/, "").strip
 
       obj      = JSON.parse(text)
       category = obj["category"].to_s.upcase
       category = "NONE" unless VALID_CATEGORIES.include?(category)
 
-      {
-        category: category,
+      { category: category,
         query:    obj["query"].to_s,
-        message:  obj["message"].to_s.presence,
-      }
+        message:  obj["message"].to_s.presence }
     rescue JSON::ParserError => e
-      raise "bad AI JSON (#{e.message}): #{json_str.first(200)}"
+      raise "bad AI JSON (#{e.message}): #{text.first(200)}"
     end
 
-    # ── Prompt (matches AiClassifier.kt exactly) ───────────────────────────────
+    # ── Prompt (identical wording to AiClassifier.kt) ─────────────────────────
 
     def build_prompt(transcript, app_labels)
       cat_lines = [
