@@ -46,6 +46,9 @@ class SettingsActivity : AppCompatActivity() {
         val urlField = findViewById<EditText>(R.id.whisper_url)
         urlField.setText(prefs.getString("whisper_url", "http://your-server:8080/v1/audio/transcriptions"))
 
+        val logUrlField = findViewById<EditText>(R.id.log_url)
+        logUrlField.setText(prefs.getString("log_url", ""))
+
         // ── App spinners ───────────────────────────────────────────────────────
 
         musicOptions     = AppCandidates.forCategory(this, VoiceCategory.MUSIC)
@@ -82,6 +85,7 @@ class SettingsActivity : AppCompatActivity() {
 
             val edit = prefs.edit()
                 .putString("whisper_url", urlField.text.toString().trim())
+                .putString("log_url",     logUrlField.text.toString().trim())
                 .putString(VoiceCategory.MUSIC.prefKey,      selectedPkg(R.id.spinner_music,     musicOptions))
                 .putString(VoiceCategory.WEATHER.prefKey,    selectedPkg(R.id.spinner_weather,   weatherOptions))
                 .putString(VoiceCategory.NAVIGATION.prefKey, selectedPkg(R.id.spinner_nav,       navOptions))

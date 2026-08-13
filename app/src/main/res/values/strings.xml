@@ -13,6 +13,10 @@
     <string name="settings_whisper_url_hint">http://your-server:8080/v1/audio/transcriptions</string>
     <string name="settings_whisper_url_desc">Point this at any OpenAI-compatible Whisper endpoint (self-hosted faster-whisper, LocalAI, whisper.cpp server, etc.)</string>
 
+    <string name="settings_log_url_label">Command log URL (optional):</string>
+    <string name="settings_log_url_hint">http://your-server:8081/v1/log</string>
+    <string name="settings_log_url_desc">Leave blank to disable. Anonymous command logs (no audio, no personal data) are sent here after each command for app improvement.</string>
+
     <string name="btn_save">Save</string>
 
     <!-- Command routing -->

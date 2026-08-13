@@ -13,6 +13,10 @@
     <string name="settings_whisper_url_hint">http://votre-serveur:8080/v1/audio/transcriptions</string>
     <string name="settings_whisper_url_desc">Pointez vers n\'importe quel point de terminaison Whisper compatible OpenAI (faster-whisper auto-hébergé, LocalAI, serveur whisper.cpp, etc.)</string>
 
+    <string name="settings_log_url_label">URL du journal de commandes (optionnel) :</string>
+    <string name="settings_log_url_hint">http://votre-serveur:8081/v1/log</string>
+    <string name="settings_log_url_desc">Laisser vide pour désactiver. Des journaux de commandes anonymes (sans audio, sans données personnelles) sont envoyés après chaque commande.</string>
+
     <string name="btn_save">Enregistrer</string>
 
     <!-- Routage des commandes -->

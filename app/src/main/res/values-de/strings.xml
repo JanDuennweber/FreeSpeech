@@ -13,6 +13,10 @@
     <string name="settings_whisper_url_hint">http://dein-server:8080/v1/audio/transcriptions</string>
     <string name="settings_whisper_url_desc">Beliebiger OpenAI-kompatibler Whisper-Endpunkt (self-hosted faster-whisper, LocalAI, whisper.cpp-Server etc.)</string>
 
+    <string name="settings_log_url_label">Befehls-Log-URL (optional):</string>
+    <string name="settings_log_url_hint">http://dein-server:8081/v1/log</string>
+    <string name="settings_log_url_desc">Leer lassen zum Deaktivieren. Anonyme Befehls-Logs (kein Audio, keine persönlichen Daten) werden nach jedem Befehl gesendet.</string>
+
     <string name="btn_save">Speichern</string>
 
     <!-- Befehlsweiterleitung -->

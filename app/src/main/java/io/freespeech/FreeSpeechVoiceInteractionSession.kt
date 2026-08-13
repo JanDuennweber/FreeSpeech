@@ -64,9 +64,10 @@ class FreeSpeechVoiceInteractionSession(context: Context) : VoiceInteractionSess
             if (samples.isEmpty()) { hide(); return }
 
             setStatus(context.getString(R.string.status_processing))
-            val wav = AudioUtils.buildWav(samples, SAMPLE_RATE)
-            val transcript = AudioUtils.sendToWhisper(wav, context)
-            Log.i(TAG, "Transcript: $transcript")
+            val wav    = AudioUtils.buildWav(samples, SAMPLE_RATE)
+            val result = AudioUtils.sendToWhisper(wav, context)
+            val transcript = result.transcript
+            Log.i(TAG, "Transcript: $transcript (lang=${result.language})")
 
             if (transcript.isBlank()) {
                 setStatus(context.getString(R.string.status_nothing_recognized))
@@ -77,6 +78,12 @@ class FreeSpeechVoiceInteractionSession(context: Context) : VoiceInteractionSess
                 val label      = IntentRouter.routingLabel(classified, context)
                 Log.i(TAG, "Category: ${classified.category}, query: ${classified.query}")
                 setStatus(label)
+
+                // Anonymous log — fire-and-forget, never blocks.
+                val aiEngine = if (classified.aiMessage != null)
+                    prefs.getString("ai_engine", AiClassifier.ENGINE_GEMINI) else null
+                CommandLogger.post(context, transcript, classified.category,
+                    classified.query, result.language, aiEngine)
 
                 if (classified.category != VoiceCategory.NONE) {
                     val intent = IntentRouter.buildIntent(classified, prefs)

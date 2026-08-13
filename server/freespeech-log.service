@@ -1,0 +1,41 @@
+# FreeSpeech anonymous command log server
+# ────────────────────────────────────────────────────────────────────────────────
+# Install:
+#   sudo cp freespeech-log.service /etc/systemd/system/
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable --now freespeech-log
+#
+# View log in browser:
+#   http://<server>:8081/v1/log
+#
+# Adjust WorkingDirectory, ExecStart, User, and --log path as needed.
+# ────────────────────────────────────────────────────────────────────────────────
+
+[Unit]
+Description=FreeSpeech anonymous command log server
+After=network.target
+Documentation=https://github.com/JanDuennweber/FreeSpeech
+
+[Service]
+Type=simple
+User=freespeech
+Group=freespeech
+
+# ── Adjust these paths ──────────────────────────────────────────────────────────
+WorkingDirectory=/opt/freespeech-log
+ExecStart=/usr/bin/python3 /opt/freespeech-log/freespeech_log_server.py \
+    --port 8081 \
+    --log  /var/log/freespeech/commands.jsonl
+# ───────────────────────────────────────────────────────────────────────────────
+
+Restart=on-failure
+RestartSec=5s
+
+# Hardening
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ReadWritePaths=/var/log/freespeech
+
+[Install]
+WantedBy=multi-user.target

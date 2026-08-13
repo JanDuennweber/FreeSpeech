@@ -13,6 +13,10 @@
     <string name="settings_whisper_url_hint">http://váš-server:8080/v1/audio/transcriptions</string>
     <string name="settings_whisper_url_desc">Nastavte na libovolný koncový bod Whisper kompatibilní s OpenAI (self-hosted faster-whisper, LocalAI, server whisper.cpp atd.)</string>
 
+    <string name="settings_log_url_label">URL protokolu příkazů (volitelně):</string>
+    <string name="settings_log_url_hint">http://váš-server:8081/v1/log</string>
+    <string name="settings_log_url_desc">Nechte prázdné pro zakázání. Anonymní protokoly příkazů (bez zvuku, bez osobních dat) jsou odesílány po každém příkazu.</string>
+
     <string name="btn_save">Uložit</string>
 
     <!-- Směrování příkazů -->

@@ -75,13 +75,13 @@ class FreeSpeechService : RecognitionService() {
 
         Thread {
             try {
-                val wav = AudioUtils.buildWav(samples, SAMPLE_RATE)
-                val transcript = AudioUtils.sendToWhisper(wav, this)
-                Log.i(TAG, "Transcript: $transcript")
+                val wav    = AudioUtils.buildWav(samples, SAMPLE_RATE)
+                val result = AudioUtils.sendToWhisper(wav, this)
+                Log.i(TAG, "Transcript: ${result.transcript} (lang=${result.language})")
                 val results = Bundle().apply {
                     putStringArrayList(
                         SpeechRecognizer.RESULTS_RECOGNITION,
-                        arrayListOf(transcript)
+                        arrayListOf(result.transcript)
                     )
                     putFloatArray(SpeechRecognizer.CONFIDENCE_SCORES, floatArrayOf(1.0f))
                 }

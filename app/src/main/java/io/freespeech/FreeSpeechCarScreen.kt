@@ -88,9 +88,10 @@ class FreeSpeechCarScreen(carContext: CarContext) : Screen(carContext) {
                 }
 
                 setStatus(appContext.getString(R.string.status_processing))
-                val wav        = AudioUtils.buildWav(samples, SAMPLE_RATE)
-                val transcript = AudioUtils.sendToWhisper(wav, appContext)
-                Log.i(TAG, "Transcript: $transcript")
+                val wav    = AudioUtils.buildWav(samples, SAMPLE_RATE)
+                val result = AudioUtils.sendToWhisper(wav, appContext)
+                val transcript = result.transcript
+                Log.i(TAG, "Transcript: $transcript (lang=${result.language})")
 
                 if (transcript.isBlank()) {
                     setStatus(appContext.getString(R.string.status_nothing_recognized))
@@ -100,6 +101,12 @@ class FreeSpeechCarScreen(carContext: CarContext) : Screen(carContext) {
                     val label      = IntentRouter.routingLabel(classified, appContext)
                     Log.i(TAG, "Category: ${classified.category}, query: ${classified.query}")
                     setStatus(label)
+
+                    // Anonymous log — fire-and-forget, never blocks.
+                    val aiEngine = if (classified.aiMessage != null)
+                        prefs.getString("ai_engine", AiClassifier.ENGINE_GEMINI) else null
+                    CommandLogger.post(appContext, transcript, classified.category,
+                        classified.query, result.language, aiEngine)
 
                     if (classified.category != VoiceCategory.NONE) {
                         val intent = IntentRouter.buildIntent(classified, prefs)
