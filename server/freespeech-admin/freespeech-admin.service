@@ -1,0 +1,24 @@
+[Unit]
+Description=FreeSpeech Admin Rails Web UI
+After=network.target
+
+[Service]
+Type=simple
+User=freespeech
+WorkingDirectory=/opt/freespeech-admin
+Environment=RAILS_ENV=production
+Environment=RAILS_LOG_TO_STDOUT=true
+Environment=FREESPEECH_ADMIN_USER=admin
+# CHANGE THIS — or override it in a EnvironmentFile
+Environment=FREESPEECH_ADMIN_PASSWORD=freespeech
+# Rails needs SECRET_KEY_BASE in production — generate with:
+#   cd /opt/freespeech-admin && bundle exec rails secret
+EnvironmentFile=-/opt/freespeech-admin/.env
+ExecStart=/usr/bin/bundle exec puma -p 3001 -e production
+Restart=on-failure
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

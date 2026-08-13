@@ -1,0 +1,149 @@
+<h2 style="margin-bottom:1.2rem">Configuration</h2>
+
+<%= form_with url: config_path, method: :patch, local: true do |f| %>
+
+  <%# ── Whisper ─────────────────────────────────────────────────────────────── %>
+  <div class="card">
+    <div class="card-title">🔊 Whisper Transcription Server</div>
+    <div class="fields-grid">
+      <div class="field">
+        <%= label_tag "settings[whisper_url]", "Endpoint URL" %>
+        <%= text_field_tag "settings[whisper_url]", @settings["whisper_url"],
+              placeholder: "http://localhost:8080/v1/audio/transcriptions" %>
+        <div class="hint">OpenAI-compatible transcription endpoint (faster-whisper, whisper.cpp, LocalAI, …)</div>
+      </div>
+      <div class="field">
+        <%= label_tag "settings[whisper_model]", "Model" %>
+        <%= text_field_tag "settings[whisper_model]", @settings["whisper_model"],
+              placeholder: "large-v3" %>
+        <div class="hint">Whisper model name passed to the server (large-v3, medium, small, …)</div>
+      </div>
+    </div>
+  </div>
+
+  <%# ── AI Classification ──────────────────────────────────────────────────── %>
+  <div class="card">
+    <div class="card-title">🤖 AI Command Classification</div>
+    <div class="fields-grid">
+      <div class="field">
+        <%= label_tag "settings[ai_engine]", "Engine" %>
+        <%= select_tag "settings[ai_engine]",
+              options_for_select([
+                ["Ollama (local / private)", "ollama"],
+                ["Gemini (free, Google)",    "gemini"],
+                ["OpenAI / GPT",             "openai"],
+              ], @settings["ai_engine"]) %>
+        <div class="hint">Which AI backend classifies voice commands into music / navigation / weather / …</div>
+      </div>
+      <div class="field">
+        <%= label_tag "settings[ai_model]", "Model / Version" %>
+        <%= text_field_tag "settings[ai_model]", @settings["ai_model"],
+              placeholder: "qwen2.5:7b" %>
+        <div class="hint">Ollama: qwen2.5:7b, qwen2.5:14b, … &nbsp;|&nbsp; OpenAI: gpt-4o-mini &nbsp;|&nbsp; Gemini: gemini-1.5-flash</div>
+      </div>
+      <div class="field">
+        <%= label_tag "settings[ai_base_url]", "Base URL (Ollama / custom OpenAI)" %>
+        <%= text_field_tag "settings[ai_base_url]", @settings["ai_base_url"],
+              placeholder: "http://localhost:11434" %>
+        <div class="hint">Leave empty for hosted Gemini / OpenAI. Required for Ollama and self-hosted endpoints.</div>
+      </div>
+      <div class="field">
+        <%= label_tag "settings[ai_api_key]", "API Key" %>
+        <%= password_field_tag "settings[ai_api_key]", @settings["ai_api_key"],
+              placeholder: "Leave blank for Ollama",
+              autocomplete: "new-password" %>
+        <div class="hint">Gemini: free key at ai.google.dev &nbsp;|&nbsp; OpenAI: platform.openai.com/api-keys &nbsp;|&nbsp; Ollama: leave blank</div>
+      </div>
+    </div>
+  </div>
+
+  <%# ── Log Server ─────────────────────────────────────────────────────────── %>
+  <div class="card">
+    <div class="card-title">📄 Command Log (freespeech_log_server.py)</div>
+    <div class="fields-grid">
+      <div class="field">
+        <%= label_tag "settings[log_jsonl_path]", "JSONL Log File Path" %>
+        <%= text_field_tag "settings[log_jsonl_path]", @settings["log_jsonl_path"],
+              placeholder: "/var/log/freespeech/freespeech_commands.jsonl" %>
+        <div class="hint">Absolute path to the rolling JSONL log written by the Python server. Used by the History tab.</div>
+      </div>
+      <div class="field">
+        <%= label_tag "settings[log_audio_dir]", "WAV Audio Directory" %>
+        <%= text_field_tag "settings[log_audio_dir]", @settings["log_audio_dir"],
+              placeholder: "/var/log/freespeech/audio" %>
+        <div class="hint">Directory where the Python server stores WAV recordings.</div>
+      </div>
+      <div class="field">
+        <%= label_tag "settings[log_max_entries]", "Max Log Entries (rolling)" %>
+        <%= number_field_tag "settings[log_max_entries]", @settings["log_max_entries"],
+              min: 100, max: 10_000, step: 100 %>
+      </div>
+      <div class="field">
+        <%= label_tag "settings[log_max_wavs]", "Max WAV Files Kept" %>
+        <%= number_field_tag "settings[log_max_wavs]", @settings["log_max_wavs"],
+              min: 10, max: 1_000, step: 10 %>
+      </div>
+    </div>
+  </div>
+
+  <div style="text-align:right; margin-bottom:2rem">
+    <%= f.submit "💾  Save Settings", class: "btn btn-primary", style: "font-size:.95rem;padding:.55rem 1.4rem" %>
+  </div>
+<% end %>
+
+<%# ── Languages ───────────────────────────────────────────────────────────── %>
+<div class="card">
+  <div class="card-title">🌐 Supported Languages</div>
+  <p class="hint" style="margin-bottom:.9rem">
+    English, German and French are always present and cannot be removed.
+    Added languages appear in the FreeSpeech app language selector and are included in the
+    <a href="/api/languages" target="_blank">/api/languages</a> feed.
+  </p>
+
+  <div class="lang-list">
+    <% @languages.each do |lang| %>
+      <div class="lang-pill <%= 'protected' if lang.protected? %>">
+        <%= lang.name %> <code style="font-size:.75em;color:#495057"><%= lang.code %></code>
+        <% if lang.protected? %>
+          <span class="lock" title="Protected — always active">🔒</span>
+        <% else %>
+          <%= form_with url: language_path(lang), method: :delete, local: true,
+                        data: { confirm: "Remove #{lang.name}?" } do %>
+            <button type="submit" class="btn btn-danger" title="Remove <%= lang.name %>">✕</button>
+          <% end %>
+        <% end %>
+      </div>
+    <% end %>
+  </div>
+
+  <%# Add language form %>
+  <%= form_with url: languages_path, method: :post, local: true do |f| %>
+    <div class="add-lang">
+      <div class="field">
+        <%= label_tag "language[code]", "BCP-47 code" %>
+        <%= text_field_tag "language[code]", nil,
+              placeholder: "e.g. pt, zh-TW, ru",
+              maxlength: 10, style: "max-width:140px" %>
+      </div>
+      <div class="field">
+        <%= label_tag "language[name]", "Language name" %>
+        <%= text_field_tag "language[name]", nil,
+              placeholder: "e.g. Portuguese" %>
+      </div>
+      <%= f.submit "+ Add Language", class: "btn btn-primary btn-sm",
+            style: "white-space:nowrap;align-self:flex-end;margin-bottom:2px" %>
+    </div>
+  <% end %>
+</div>
+
+<%# ── API reference ────────────────────────────────────────────────────────── %>
+<div class="card" style="border-style:dashed">
+  <div class="card-title" style="font-size:.85rem">🔌 JSON Config API</div>
+  <p class="hint">
+    The Python log server and Android app can fetch live config from this endpoint:
+    <a href="/api/config" target="_blank"><code>/api/config</code></a>
+    &nbsp;|&nbsp;
+    <a href="/api/languages" target="_blank"><code>/api/languages</code></a>
+    <br>Note: the API key is never exposed via the API.
+  </p>
+</div>

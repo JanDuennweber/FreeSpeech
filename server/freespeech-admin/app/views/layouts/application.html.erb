@@ -1,0 +1,256 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>FreeSpeech Admin</title>
+  <%= csrf_meta_tags %>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:      #f8f9fa;
+      --surface: #ffffff;
+      --border:  #dee2e6;
+      --muted:   #6c757d;
+      --accent:  #0d6efd;
+      --danger:  #dc3545;
+      --success: #198754;
+      --warn:    #ffc107;
+      --txt:     #212529;
+    }
+
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--txt);
+      font-size: .9rem;
+      line-height: 1.5;
+    }
+
+    /* ── Top bar ─────────────────────────────────────────────── */
+    header {
+      background: #1a1a2e;
+      color: #e2e8f0;
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+      padding: .75rem 1.5rem;
+    }
+    header .brand { font-weight: 700; font-size: 1.05rem; letter-spacing: .02em; }
+    header .brand span { color: #93c5fd; }
+    nav { display: flex; gap: .25rem; margin-left: auto; }
+    nav a {
+      color: #cbd5e1;
+      text-decoration: none;
+      padding: .4rem .9rem;
+      border-radius: 6px;
+      font-size: .85rem;
+      transition: background .15s;
+    }
+    nav a:hover { background: rgba(255,255,255,.1); }
+    nav a.active { background: var(--accent); color: #fff; }
+
+    /* ── Flash messages ──────────────────────────────────────── */
+    .flash {
+      max-width: 960px;
+      margin: 1rem auto 0;
+      padding: .7rem 1rem;
+      border-radius: 6px;
+      font-size: .875rem;
+    }
+    .flash.notice { background: #d1e7dd; color: #0a3622; border: 1px solid #a3cfbb; }
+    .flash.alert  { background: #f8d7da; color: #58151c; border: 1px solid #f1aeb5; }
+
+    /* ── Page wrapper ────────────────────────────────────────── */
+    main { max-width: 960px; margin: 1.5rem auto; padding: 0 1rem 4rem; }
+
+    /* ── Cards ───────────────────────────────────────────────── */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1.25rem 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+    .card-title {
+      font-size: .95rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+      padding-bottom: .5rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    /* ── Form rows ───────────────────────────────────────────── */
+    .field { margin-bottom: .9rem; }
+    .field label {
+      display: block;
+      font-size: .8rem;
+      font-weight: 600;
+      color: var(--muted);
+      margin-bottom: .3rem;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+    }
+    .field input[type=text],
+    .field input[type=url],
+    .field input[type=password],
+    .field input[type=number],
+    .field select,
+    .field textarea {
+      width: 100%;
+      padding: .45rem .65rem;
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      font-size: .875rem;
+      background: var(--bg);
+      color: var(--txt);
+      transition: border-color .15s;
+    }
+    .field input:focus, .field select:focus {
+      outline: none;
+      border-color: var(--accent);
+      background: #fff;
+    }
+    .field .hint {
+      font-size: .77rem;
+      color: var(--muted);
+      margin-top: .25rem;
+    }
+
+    /* Two-column grid for settings */
+    .fields-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 1.5rem; }
+    @media (max-width: 600px) { .fields-grid { grid-template-columns: 1fr; } }
+
+    /* ── Buttons ─────────────────────────────────────────────── */
+    .btn {
+      display: inline-block;
+      padding: .45rem 1.1rem;
+      border: none;
+      border-radius: 5px;
+      font-size: .875rem;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      transition: opacity .15s;
+    }
+    .btn:hover { opacity: .88; }
+    .btn-primary { background: var(--accent); color: #fff; }
+    .btn-danger  { background: var(--danger);  color: #fff; padding: .2rem .55rem; font-size: .78rem; }
+    .btn-sm      { padding: .2rem .55rem; font-size: .78rem; }
+
+    /* ── Language pills ──────────────────────────────────────── */
+    .lang-list { display: flex; flex-wrap: wrap; gap: .5rem; margin-bottom: 1rem; }
+    .lang-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: .4rem;
+      background: #e9ecef;
+      border-radius: 999px;
+      padding: .25rem .75rem .25rem .6rem;
+      font-size: .83rem;
+    }
+    .lang-pill.protected { background: #cfe2ff; }
+    .lang-pill .lock { font-size: .7rem; color: var(--muted); }
+    .lang-pill form { display: inline; }
+
+    /* ── Add-language inline form ─────────────────────────────── */
+    .add-lang {
+      display: flex;
+      gap: .5rem;
+      align-items: flex-end;
+      flex-wrap: wrap;
+      margin-top: .75rem;
+    }
+    .add-lang .field { margin: 0; flex: 1; min-width: 120px; }
+    .add-lang .field label { font-size: .75rem; }
+
+    /* ── Table (history) ─────────────────────────────────────── */
+    .table-wrap { overflow-x: auto; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: .83rem;
+    }
+    thead th {
+      background: #343a40;
+      color: #fff;
+      text-align: left;
+      padding: .55rem .75rem;
+      white-space: nowrap;
+    }
+    tbody td {
+      padding: .4rem .75rem;
+      border-bottom: 1px solid #f0f0f0;
+      vertical-align: middle;
+    }
+    tbody tr:last-child td { border-bottom: none; }
+    tbody tr:hover td { background: #f8f9fa; }
+    td.ts   { white-space: nowrap; color: var(--muted); font-size: .77rem; }
+    td.cmd  { font-style: italic; max-width: 22rem; word-break: break-word; }
+    td.arr  { color: #ccc; padding: 0 .3rem; }
+    td.meta { white-space: nowrap; color: var(--muted); font-size: .8rem; }
+    td.meta code {
+      background: #e9ecef;
+      padding: .1em .3em;
+      border-radius: 3px;
+      font-size: .75em;
+    }
+    td.aud  { min-width: 180px; }
+    audio   { height: 22px; max-width: 180px; vertical-align: middle; }
+
+    /* ── Filters bar ─────────────────────────────────────────── */
+    .filters {
+      display: flex;
+      gap: .5rem;
+      flex-wrap: wrap;
+      align-items: flex-end;
+      margin-bottom: 1rem;
+    }
+    .filters .field { margin: 0; flex: 1; min-width: 140px; }
+    .filters label { font-size: .75rem; }
+    .filters select, .filters input { font-size: .83rem; padding: .35rem .5rem; }
+    .filters .btn { padding: .38rem .9rem; font-size: .83rem; }
+
+    /* ── Pagination ──────────────────────────────────────────── */
+    .pager { display: flex; gap: .4rem; justify-content: center; margin-top: 1.2rem; }
+    .pager a, .pager span {
+      padding: .3rem .65rem;
+      border-radius: 4px;
+      font-size: .82rem;
+      text-decoration: none;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--txt);
+    }
+    .pager a:hover { background: #e9ecef; }
+    .pager .current { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+    /* ── Misc ────────────────────────────────────────────────── */
+    .empty { text-align: center; padding: 2rem; color: var(--muted); }
+    .sub   { color: var(--muted); font-size: .85rem; margin-bottom: 1.2rem; }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="brand">🎤 Free<span>Speech</span> Admin</div>
+  <nav>
+    <a href="<%= config_path %>"  class="<%= 'active' if active_tab == :config  %>">⚙ Config</a>
+    <a href="<%= history_path %>" class="<%= 'active' if active_tab == :history %>">📋 History</a>
+  </nav>
+</header>
+
+<% if notice.present? %>
+  <div class="flash notice"><%= notice %></div>
+<% end %>
+<% if alert.present? %>
+  <div class="flash alert"><%= alert %></div>
+<% end %>
+
+<main>
+  <%= yield %>
+</main>
+
+</body>
+</html>

@@ -1,0 +1,127 @@
+<h2 style="margin-bottom:.4rem">Command History</h2>
+<p class="sub">
+  <%= @total %>&thinsp;/&thinsp;<%= @cap %> entries
+  &nbsp;·&nbsp; <%= @n_wav %> recordings stored (last <%= @max_wav %> kept)
+  &nbsp;·&nbsp; <a href="#" onclick="location.reload();return false">↻ Refresh</a>
+</p>
+
+<%# ── Filters ──────────────────────────────────────────────────────────────── %>
+<%= form_with url: history_path, method: :get, local: true do %>
+  <div class="filters">
+    <div class="field">
+      <%= label_tag :lang, "Language" %>
+      <%= select_tag :lang,
+            options_for_select([["All languages", ""]] + @langs.map { |l| [l, l] }, @lang_filter),
+            style: "min-width:110px" %>
+    </div>
+    <div class="field">
+      <%= label_tag :cat, "Category" %>
+      <%= select_tag :cat,
+            options_for_select([["All categories", ""]] + @cats.map { |c| [c, c] }, @cat_filter),
+            style: "min-width:130px" %>
+    </div>
+    <div class="field">
+      <%= label_tag :q, "Search transcript" %>
+      <%= text_field_tag :q, @q_filter, placeholder: "keyword…", style: "min-width:160px" %>
+    </div>
+    <button type="submit" class="btn btn-primary">Filter</button>
+    <% if @lang_filter || @cat_filter || @q_filter %>
+      <%= link_to "Clear", history_path, class: "btn", style: "background:#e9ecef" %>
+    <% end %>
+  </div>
+<% end %>
+
+<%# ── Table ────────────────────────────────────────────────────────────────── %>
+<div class="card" style="padding:0;overflow:hidden">
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Time (UTC)</th>
+          <th>Transcript</th>
+          <th></th>
+          <th>Result</th>
+          <th>Meta</th>
+          <th>Recording</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% if @entries.empty? %>
+          <tr><td colspan="6" class="empty">No entries match the current filter.</td></tr>
+        <% else %>
+          <% @entries.each do |e| %>
+            <%
+              ts    = h(e["ts"]    || "")
+              cmd   = h(e["cmd"]   || "")
+              cat   = h(e["cat"]   || "?")
+              query = h(e["query"] || "")
+              lang  = h(e["lang"]  || "?")
+              ai    = e["ai"].presence
+
+              result_html = query.present? ? "<b>#{cat}</b>: #{query}" : "<b>#{cat}</b>"
+
+              meta_parts  = ["<code>#{lang}</code>"]
+              meta_parts << "ai:#{h(ai)}" if ai
+              meta_html   = "(#{meta_parts.join('&thinsp;')})"
+
+              wav_name  = e["wav"].presence
+              wav_exists = wav_name && @audio_dir.join(wav_name).exist?
+            %>
+            <tr>
+              <td class="ts"><%= ts %></td>
+              <td class="cmd"><em><%= cmd %></em></td>
+              <td class="arr">→</td>
+              <td><%= raw result_html %></td>
+              <td class="meta"><%= raw meta_html %></td>
+              <td class="aud">
+                <% if wav_exists %>
+                  <audio controls preload="none">
+                    <source src="<%= audio_file_path(filename: wav_name) %>" type="audio/wav">
+                  </audio><br>
+                  <a href="<%= audio_file_path(filename: wav_name) %>"
+                     style="font-size:.73rem;color:#6c757d">⬇ <%= h(wav_name) %></a>
+                <% elsif wav_name %>
+                  <span style="color:#adb5bd;font-size:.8rem">pruned</span>
+                <% else %>
+                  <span style="color:#dee2e6">–</span>
+                <% end %>
+              </td>
+            </tr>
+          <% end %>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<%# ── Pagination ────────────────────────────────────────────────────────────── %>
+<% if @pages > 1 %>
+  <%
+    raw_pages = ([@page - 2, 1].max .. [@page + 2, @pages].min).to_a
+    all_pages = ([1] + raw_pages + [@pages]).uniq.sort
+  %>
+  <div class="pager">
+    <% if @page > 1 %>
+      <%= link_to "‹", history_path(page: @page - 1, lang: @lang_filter, cat: @cat_filter, q: @q_filter) %>
+    <% end %>
+    <% all_pages.each_with_index do |n, i| %>
+      <% if i > 0 && n - all_pages[i - 1] > 1 %>
+        <span>…</span>
+      <% end %>
+      <%= n == @page ?
+            content_tag(:span, n, class: "current") :
+            link_to(n, history_path(page: n, lang: @lang_filter, cat: @cat_filter, q: @q_filter)) %>
+    <% end %>
+    <% if @page < @pages %>
+      <%= link_to "›", history_path(page: @page + 1, lang: @lang_filter, cat: @cat_filter, q: @q_filter) %>
+    <% end %>
+  </div>
+<% end %>
+
+<% if @entries.empty? && !@lang_filter && !@cat_filter && !@q_filter %>
+  <div class="card" style="text-align:center;color:var(--muted);margin-top:1rem">
+    <p style="margin-bottom:.5rem">No commands logged yet, or the log path is not configured.</p>
+    <p>Set the <strong>JSONL Log File Path</strong> on the
+       <%= link_to "Config tab", config_path %>.</p>
+  </div>
+<% end %>
