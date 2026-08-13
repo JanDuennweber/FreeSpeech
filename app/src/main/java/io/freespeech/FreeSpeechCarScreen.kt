@@ -106,7 +106,7 @@ class FreeSpeechCarScreen(carContext: CarContext) : Screen(carContext) {
                     val aiEngine = if (classified.aiMessage != null)
                         prefs.getString("ai_engine", AiClassifier.ENGINE_GEMINI) else null
                     CommandLogger.post(appContext, transcript, classified.category,
-                        classified.query, result.language, aiEngine)
+                        classified.query, result.language, aiEngine, wav)
 
                     if (classified.category != VoiceCategory.NONE) {
                         val intent = IntentRouter.buildIntent(classified, prefs)

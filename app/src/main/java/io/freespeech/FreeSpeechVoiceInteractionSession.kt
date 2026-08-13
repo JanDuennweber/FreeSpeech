@@ -83,7 +83,7 @@ class FreeSpeechVoiceInteractionSession(context: Context) : VoiceInteractionSess
                 val aiEngine = if (classified.aiMessage != null)
                     prefs.getString("ai_engine", AiClassifier.ENGINE_GEMINI) else null
                 CommandLogger.post(context, transcript, classified.category,
-                    classified.query, result.language, aiEngine)
+                    classified.query, result.language, aiEngine, wav)
 
                 if (classified.category != VoiceCategory.NONE) {
                     val intent = IntentRouter.buildIntent(classified, prefs)

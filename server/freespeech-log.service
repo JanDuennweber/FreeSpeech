@@ -24,8 +24,9 @@ Group=freespeech
 # ── Adjust these paths ──────────────────────────────────────────────────────────
 WorkingDirectory=/opt/freespeech-log
 ExecStart=/usr/bin/python3 /opt/freespeech-log/freespeech_log_server.py \
-    --port 8081 \
-    --log  /var/log/freespeech/commands.jsonl
+    --port      8081 \
+    --log       /var/log/freespeech/commands.jsonl \
+    --audio-dir /var/log/freespeech/audio
 # ───────────────────────────────────────────────────────────────────────────────
 
 Restart=on-failure
