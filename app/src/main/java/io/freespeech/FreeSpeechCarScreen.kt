@@ -86,20 +86,21 @@ class FreeSpeechCarScreen(carContext: CarContext) : Screen(carContext) {
                 if (transcript.isBlank()) {
                     setStatus("(nichts erkannt)")
                 } else {
-                    // Classify intent and route to the configured app.
                     val prefs      = appContext.getSharedPreferences("freespeech", android.content.Context.MODE_PRIVATE)
-                    val classified = IntentRouter.classify(transcript)
+                    val classified = IntentRouter.classify(transcript, prefs, appContext)
                     val label      = IntentRouter.routingLabel(classified)
-                    setStatus(label)
                     Log.i(TAG, "Category: ${classified.category}, query: ${classified.query}")
+                    setStatus(label)
 
-                    val intent = IntentRouter.buildIntent(classified, prefs)
-                    if (intent != null) {
-                        try {
-                            carContext.startActivity(intent)
-                        } catch (e: Exception) {
-                            Log.e(TAG, "Could not start activity for ${classified.category}", e)
-                            setStatus("App nicht gefunden:\n${e.message}")
+                    if (classified.category != VoiceCategory.NONE) {
+                        val intent = IntentRouter.buildIntent(classified, prefs)
+                        if (intent != null) {
+                            try {
+                                carContext.startActivity(intent)
+                            } catch (e: Exception) {
+                                Log.e(TAG, "Could not start activity for ${classified.category}", e)
+                                setStatus("App nicht gefunden:\n${e.message}")
+                            }
                         }
                     }
                 }

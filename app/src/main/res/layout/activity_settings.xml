@@ -147,9 +147,113 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Tipp: Anruf-Befehle öffnen immer das Telefon — keine Konfiguration nötig."
+            android:text="Tipp: Anruf-Befehle oeffnen immer das Telefon — keine Konfiguration noetig."
             android:textSize="12sp"
             android:layout_marginBottom="8dp" />
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="?android:attr/listDivider"
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="24dp" />
+
+        <!-- ── AI classification ───────────────────────────────────────────── -->
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="KI-Befehlsinterpretation"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="4dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Wenn aktiviert, versteht FreeSpeech auch freie Saetze wie &quot;Ich haette Hunger&quot; oder &quot;Rock-Musik waere toll&quot;. Die Transkription wird dazu an die konfigurierte KI gesendet."
+            android:textSize="12sp"
+            android:layout_marginBottom="16dp" />
+
+        <CheckBox
+            android:id="@+id/use_ai"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="KI fuer Befehlsinterpretation nutzen"
+            android:layout_marginBottom="16dp" />
+
+        <!-- This block is shown/hidden by SettingsActivity based on the checkbox. -->
+        <LinearLayout
+            android:id="@+id/ai_config"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:visibility="gone">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="KI-Engine:"
+                android:textStyle="bold"
+                android:layout_marginBottom="4dp" />
+            <Spinner
+                android:id="@+id/spinner_ai_engine"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="4dp" />
+            <TextView
+                android:id="@+id/ai_engine_hint"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="12sp"
+                android:layout_marginBottom="16dp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="API-Schluessel:"
+                android:textStyle="bold"
+                android:layout_marginBottom="4dp" />
+            <EditText
+                android:id="@+id/ai_api_key"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="textPassword"
+                android:hint="Leer lassen fuer Ollama"
+                android:layout_marginBottom="4dp" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Gemini: kostenloser API-Schluessel unter ai.google.dev (kein Zahlungsmittel noetig)."
+                android:textSize="12sp"
+                android:layout_marginBottom="16dp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Basis-URL:"
+                android:textStyle="bold"
+                android:layout_marginBottom="4dp" />
+            <EditText
+                android:id="@+id/ai_base_url"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="textUri"
+                android:layout_marginBottom="16dp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Modell:"
+                android:textStyle="bold"
+                android:layout_marginBottom="4dp" />
+            <EditText
+                android:id="@+id/ai_model"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp" />
+
+        </LinearLayout>
 
     </LinearLayout>
 </ScrollView>

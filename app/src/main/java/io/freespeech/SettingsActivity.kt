@@ -2,17 +2,21 @@ package io.freespeech
 
 import android.content.Context
 import android.os.Bundle
+import android.view.View
+import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import android.widget.Button
+import android.widget.CheckBox
 import android.widget.EditText
+import android.widget.LinearLayout
 import android.widget.Spinner
+import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 
 class SettingsActivity : AppCompatActivity() {
 
-    // Spinner state: each entry is the AppOption list for that category,
-    // used to map spinner position → packageName on save.
+    // Spinner state: option lists whose index maps to a packageName / engine key.
     private lateinit var musicOptions:     List<AppOption>
     private lateinit var weatherOptions:   List<AppOption>
     private lateinit var navOptions:       List<AppOption>
@@ -44,25 +48,103 @@ class SettingsActivity : AppCompatActivity() {
         // ── Search engine ──────────────────────────────────────────────────────
 
         val seSpinner = findViewById<Spinner>(R.id.spinner_searchengine)
-        val seAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, searchEngines.map { it.label })
-        seAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-        seSpinner.adapter = seAdapter
+        ArrayAdapter(this, android.R.layout.simple_spinner_item, searchEngines.map { it.label })
+            .also { it.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item) }
+            .let { seSpinner.adapter = it }
         val savedEngine = prefs.getString("search_engine", searchEngines[0].urlPrefix)
-        val seIdx = searchEngines.indexOfFirst { it.urlPrefix == savedEngine }.coerceAtLeast(0)
-        seSpinner.setSelection(seIdx)
+        seSpinner.setSelection(searchEngines.indexOfFirst { it.urlPrefix == savedEngine }.coerceAtLeast(0))
+
+        // ── AI section ─────────────────────────────────────────────────────────
+
+        setupAiSection(prefs)
 
         // ── Save ───────────────────────────────────────────────────────────────
 
         findViewById<Button>(R.id.save_button).setOnClickListener {
-            prefs.edit()
+            val edit = prefs.edit()
                 .putString("whisper_url", urlField.text.toString().trim())
                 .putString(VoiceCategory.MUSIC.prefKey,      selectedPkg(R.id.spinner_music,     musicOptions))
                 .putString(VoiceCategory.WEATHER.prefKey,    selectedPkg(R.id.spinner_weather,   weatherOptions))
                 .putString(VoiceCategory.NAVIGATION.prefKey, selectedPkg(R.id.spinner_nav,       navOptions))
                 .putString(VoiceCategory.WEB_SEARCH.prefKey, selectedPkg(R.id.spinner_websearch, websearchOptions))
                 .putString("search_engine", searchEngines[seSpinner.selectedItemPosition].urlPrefix)
-                .apply()
+                // AI settings
+                .putBoolean("use_ai", findViewById<CheckBox>(R.id.use_ai).isChecked)
+                .putString("ai_engine",   AiClassifier.ENGINE_OPTIONS[
+                    (findViewById<Spinner>(R.id.spinner_ai_engine).selectedItemPosition)
+                        .coerceIn(0, AiClassifier.ENGINE_OPTIONS.lastIndex)
+                ].second)
+                .putString("ai_api_key", findViewById<EditText>(R.id.ai_api_key).text.toString().trim())
+                .putString("ai_base_url", findViewById<EditText>(R.id.ai_base_url).text.toString().trim())
+                .putString("ai_model",   findViewById<EditText>(R.id.ai_model).text.toString().trim())
+
+            edit.apply()
             Toast.makeText(this, "Gespeichert", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    // ── AI section setup ───────────────────────────────────────────────────────
+
+    private fun setupAiSection(prefs: android.content.SharedPreferences) {
+        val useAiCheck    = findViewById<CheckBox>(R.id.use_ai)
+        val aiConfig      = findViewById<LinearLayout>(R.id.ai_config)
+        val engineSpinner = findViewById<Spinner>(R.id.spinner_ai_engine)
+        val engineHint    = findViewById<TextView>(R.id.ai_engine_hint)
+        val apiKeyField   = findViewById<EditText>(R.id.ai_api_key)
+        val baseUrlField  = findViewById<EditText>(R.id.ai_base_url)
+        val modelField    = findViewById<EditText>(R.id.ai_model)
+
+        // Show/hide AI config when checkbox changes.
+        useAiCheck.isChecked = prefs.getBoolean("use_ai", false)
+        aiConfig.visibility = if (useAiCheck.isChecked) View.VISIBLE else View.GONE
+        useAiCheck.setOnCheckedChangeListener { _, checked ->
+            aiConfig.visibility = if (checked) View.VISIBLE else View.GONE
+        }
+
+        // Engine spinner.
+        val engineLabels = AiClassifier.ENGINE_OPTIONS.map { it.first }
+        ArrayAdapter(this, android.R.layout.simple_spinner_item, engineLabels)
+            .also { it.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item) }
+            .let { engineSpinner.adapter = it }
+
+        val savedEngineKey = prefs.getString("ai_engine", AiClassifier.ENGINE_GEMINI)!!
+        val savedEngineIdx = AiClassifier.ENGINE_OPTIONS.indexOfFirst { it.second == savedEngineKey }.coerceAtLeast(0)
+
+        // Load saved values into the text fields (NOT from defaults — user may have customised them).
+        val def = AiClassifier.DEFAULTS[savedEngineKey]!!
+        apiKeyField.setText(prefs.getString("ai_api_key",  ""))
+        baseUrlField.setText(prefs.getString("ai_base_url", def.baseUrl))
+        modelField.setText(prefs.getString("ai_model",    def.model))
+        updateEngineHint(engineHint, savedEngineKey)
+
+        // When the user picks a different engine, auto-fill defaults for that engine.
+        // We skip the first call (triggered by setSelection below) via `skipFirst`.
+        var skipFirst = true
+        engineSpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: AdapterView<*>, view: View?, pos: Int, id: Long) {
+                if (skipFirst) { skipFirst = false; return }
+                val key = AiClassifier.ENGINE_OPTIONS.getOrNull(pos)?.second ?: return
+                val d   = AiClassifier.DEFAULTS[key] ?: return
+                // Only auto-fill URL and model — don't overwrite a key the user already typed.
+                baseUrlField.setText(d.baseUrl)
+                modelField.setText(d.model)
+                if (key == AiClassifier.ENGINE_OLLAMA) apiKeyField.setText("")
+                updateEngineHint(engineHint, key)
+            }
+            override fun onNothingSelected(parent: AdapterView<*>) {}
+        }
+        engineSpinner.setSelection(savedEngineIdx)
+    }
+
+    private fun updateEngineHint(hint: TextView, engineKey: String) {
+        hint.text = when (engineKey) {
+            AiClassifier.ENGINE_GEMINI ->
+                "Kostenloser API-Schluessel unter ai.google.dev — kein Zahlungsmittel noetig."
+            AiClassifier.ENGINE_OPENAI ->
+                "API-Schluessel unter platform.openai.com/api-keys. Guenstigstes Modell: gpt-4o-mini."
+            AiClassifier.ENGINE_OLLAMA ->
+                "Ollama laeuft lokal auf deinem Server — kein API-Schluessel noetig. Empfohlenes Modell: qwen2.5:7b."
+            else -> ""
         }
     }
 
@@ -70,10 +152,9 @@ class SettingsActivity : AppCompatActivity() {
 
     private fun setupSpinner(spinnerId: Int, options: List<AppOption>, savedPkg: String?) {
         val spinner = findViewById<Spinner>(spinnerId)
-        val adapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, options.map { it.label })
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-        spinner.adapter = adapter
-        // Restore saved selection (or keep index 0 = "Systemauswahl").
+        ArrayAdapter(this, android.R.layout.simple_spinner_item, options.map { it.label })
+            .also { it.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item) }
+            .let { spinner.adapter = it }
         val idx = if (savedPkg != null) options.indexOfFirst { it.packageName == savedPkg } else 0
         spinner.setSelection(idx.coerceAtLeast(0))
     }

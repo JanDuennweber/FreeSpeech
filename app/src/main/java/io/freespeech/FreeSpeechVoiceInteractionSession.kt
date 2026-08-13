@@ -72,23 +72,26 @@ class FreeSpeechVoiceInteractionSession(context: Context) : VoiceInteractionSess
                 setStatus("(nichts erkannt)")
                 mainHandler.postDelayed({ hide() }, 2_000)
             } else {
-                // Classify and show routing label before hiding.
                 val prefs      = context.getSharedPreferences("freespeech", android.content.Context.MODE_PRIVATE)
-                val classified = IntentRouter.classify(transcript)
+                val classified = IntentRouter.classify(transcript, prefs, context)
                 val label      = IntentRouter.routingLabel(classified)
-                setStatus(label)
                 Log.i(TAG, "Category: ${classified.category}, query: ${classified.query}")
+                setStatus(label)
 
-                val intent = IntentRouter.buildIntent(classified, prefs)
-                if (intent != null) {
-                    try {
-                        context.startActivity(intent)
-                    } catch (e: Exception) {
-                        Log.e(TAG, "Could not start activity for ${classified.category}", e)
-                        setStatus("App nicht gefunden:\n${e.message}")
+                if (classified.category != VoiceCategory.NONE) {
+                    val intent = IntentRouter.buildIntent(classified, prefs)
+                    if (intent != null) {
+                        try {
+                            context.startActivity(intent)
+                        } catch (e: Exception) {
+                            Log.e(TAG, "Could not start activity for ${classified.category}", e)
+                            setStatus("App nicht gefunden:\n${e.message}")
+                        }
                     }
                 }
-                mainHandler.postDelayed({ hide() }, 2_500)
+                // Show result/message longer when AI generates explanatory text for NONE.
+                val delay = if (classified.category == VoiceCategory.NONE) 4_000L else 2_500L
+                mainHandler.postDelayed({ hide() }, delay)
             }
         } catch (e: Exception) {
             Log.e(TAG, "Transcription failed", e)
