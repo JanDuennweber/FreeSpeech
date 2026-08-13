@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">FreeSpeech</string>
+
+    <!-- ── Nastavení ─────────────────────────────────────────────────────────── -->
+    <string name="settings_subtitle">Open-source hlasový asistent pro Android Auto na /e/OS</string>
+
+    <string name="settings_whisper_url_label">URL rozhraní Whisper API:</string>
+    <string name="settings_whisper_url_hint">http://váš-server:8080/v1/audio/transcriptions</string>
+    <string name="settings_whisper_url_desc">Nastavte na libovolný koncový bod Whisper kompatibilní s OpenAI (self-hosted faster-whisper, LocalAI, server whisper.cpp atd.)</string>
+
+    <string name="btn_save">Uložit</string>
+
+    <!-- Směrování příkazů -->
+    <string name="settings_command_routing_title">Hlasové příkazy → Aplikace</string>
+    <string name="settings_command_routing_desc">Vyberte, která aplikace se otevře pro každý typ příkazu. Zobrazují se pouze nainstalované aplikace.</string>
+    <string name="settings_music_label">Hudba  (např. přehraj Davida Bowieho)</string>
+    <string name="settings_weather_label">Počasí  (např. bude dnes pršet?)</string>
+    <string name="settings_nav_label">Navigace  (např. jeď na hlavní nádraží v Praze)</string>
+    <string name="settings_websearch_label">Webové vyhledávání  (vše ostatní)</string>
+    <string name="settings_searchengine_label">Vyhledávač pro webové vyhledávání:</string>
+    <string name="settings_call_hint">Tip: Příkazy volání vždy otevřou telefon — konfigurace není potřeba.</string>
+
+    <!-- Sekce AI -->
+    <string name="settings_ai_title">Interpretace příkazů pomocí AI</string>
+    <string name="settings_ai_desc">Při aktivaci FreeSpeech rozumí volným větám jako \"Mám hlad\" nebo \"Rocková hudba by byla fajn\". Přepis je odeslán do nakonfigurované AI.</string>
+    <string name="settings_use_ai">Použít AI pro interpretaci příkazů</string>
+    <string name="settings_ai_engine_label">Modul AI:</string>
+    <string name="settings_ai_api_key_label">Klíč API:</string>
+    <string name="settings_ai_api_key_hint">Pro Ollama nechte prázdné</string>
+    <string name="settings_ai_api_key_desc">Gemini: bezplatný klíč API na ai.google.dev — platební prostředek není vyžadován.</string>
+    <string name="settings_ai_base_url_label">Základní URL:</string>
+    <string name="settings_ai_model_label">Model:</string>
+
+    <string name="toast_saved">Uloženo</string>
+
+    <!-- Moduly AI -->
+    <string name="engine_gemini">Gemini (zdarma, Google)</string>
+    <string name="engine_openai">OpenAI / GPT</string>
+    <string name="engine_ollama">Ollama (lokální, soukromé)</string>
+
+    <!-- Nápověda k modulům AI -->
+    <string name="engine_hint_gemini">Bezplatný klíč API na ai.google.dev — platební prostředek není vyžadován.</string>
+    <string name="engine_hint_openai">Klíč API na platform.openai.com/api-keys. Nejlevnější model: gpt-4o-mini.</string>
+    <string name="engine_hint_ollama">Ollama běží lokálně na vašem serveru — klíč API není potřeba. Doporučený model: qwen2.5:7b.</string>
+
+    <!-- ── Volby aplikací ─────────────────────────────────────────────────────── -->
+    <string name="app_option_system_default">Výchozí systémová volba</string>
+    <string name="app_option_browser_search">Prohlížeč (vyhledávání)</string>
+
+    <!-- ── Obrazovka auta / hlasový overlay ──────────────────────────────────── -->
+    <string name="status_how_can_i_help">Jak vám mohu pomoci?</string>
+    <string name="status_listening">Poslouchám…</string>
+    <string name="status_processing">Zpracovávám…</string>
+    <string name="status_nothing_recognized">(nic nerozpoznáno)</string>
+    <string name="status_mic_unavailable">Mikrofon není dostupný.\nProsím klepněte na \"%1$s\".</string>
+    <string name="status_error_retry">Chyba: %1$s\nProsím klepněte na \"%2$s\".</string>
+    <string name="status_app_not_found">Aplikace nenalezena:\n%1$s</string>
+
+    <string name="action_recording">Nahrávám…</string>
+    <string name="action_retry">Zkusit znovu</string>
+
+    <!-- ── Popisky směrování ───────────────────────────────────────────────────── -->
+    <string name="routing_music">Hudba: %1$s</string>
+    <string name="routing_navigation">Navigace: %1$s</string>
+    <string name="routing_weather">Otevírám počasí…</string>
+    <string name="routing_call">Volám…</string>
+    <string name="routing_websearch">Hledám: %1$s</string>
+    <string name="routing_not_understood">Příkaz nebyl rozpoznán.</string>
+    <string name="routing_not_understood_suggestion">Příkaz nebyl rozpoznán. Zkuste: \"přehraj hudbu\", \"naviguj do Berlína\", \"zavolej Anně\". Nebo aktivujte AI v nastavení.</string>
+</resources>

@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">FreeSpeech</string>
+
+    <!-- ── Paramètres ────────────────────────────────────────────────────────── -->
+    <string name="settings_subtitle">Assistant vocal open-source pour Android Auto sur /e/OS</string>
+
+    <string name="settings_whisper_url_label">URL du point de terminaison Whisper API :</string>
+    <string name="settings_whisper_url_hint">http://votre-serveur:8080/v1/audio/transcriptions</string>
+    <string name="settings_whisper_url_desc">Pointez vers n\'importe quel point de terminaison Whisper compatible OpenAI (faster-whisper auto-hébergé, LocalAI, serveur whisper.cpp, etc.)</string>
+
+    <string name="btn_save">Enregistrer</string>
+
+    <!-- Routage des commandes -->
+    <string name="settings_command_routing_title">Commandes vocales → Applications</string>
+    <string name="settings_command_routing_desc">Choisissez quelle application s\'ouvre pour chaque type de commande. Seules les applications installées sont affichées.</string>
+    <string name="settings_music_label">Musique  (ex. joue David Bowie)</string>
+    <string name="settings_weather_label">Météo  (ex. est-ce qu\'il va pleuvoir aujourd\'hui ?)</string>
+    <string name="settings_nav_label">Navigation  (ex. conduis jusqu\'à la gare de Paris)</string>
+    <string name="settings_websearch_label">Recherche web  (tout le reste)</string>
+    <string name="settings_searchengine_label">Moteur de recherche pour la recherche web :</string>
+    <string name="settings_call_hint">Astuce : les commandes d\'appel ouvrent toujours le téléphone — aucune configuration nécessaire.</string>
+
+    <!-- Section IA -->
+    <string name="settings_ai_title">Interprétation des commandes par IA</string>
+    <string name="settings_ai_desc">Lorsqu\'activé, FreeSpeech comprend des phrases libres comme \"J\'ai faim\" ou \"de la bonne musique rock serait sympa\". La transcription est envoyée à l\'IA configurée.</string>
+    <string name="settings_use_ai">Utiliser l\'IA pour l\'interprétation des commandes</string>
+    <string name="settings_ai_engine_label">Moteur IA :</string>
+    <string name="settings_ai_api_key_label">Clé API :</string>
+    <string name="settings_ai_api_key_hint">Laisser vide pour Ollama</string>
+    <string name="settings_ai_api_key_desc">Gemini : clé API gratuite sur ai.google.dev — aucun moyen de paiement requis.</string>
+    <string name="settings_ai_base_url_label">URL de base :</string>
+    <string name="settings_ai_model_label">Modèle :</string>
+
+    <string name="toast_saved">Enregistré</string>
+
+    <!-- Moteurs IA -->
+    <string name="engine_gemini">Gemini (gratuit, Google)</string>
+    <string name="engine_openai">OpenAI / GPT</string>
+    <string name="engine_ollama">Ollama (local, privé)</string>
+
+    <!-- Indications sur les moteurs IA -->
+    <string name="engine_hint_gemini">Clé API gratuite sur ai.google.dev — aucun moyen de paiement requis.</string>
+    <string name="engine_hint_openai">Clé API sur platform.openai.com/api-keys. Modèle le moins cher : gpt-4o-mini.</string>
+    <string name="engine_hint_ollama">Ollama fonctionne localement sur votre serveur — aucune clé API nécessaire. Modèle recommandé : qwen2.5:7b.</string>
+
+    <!-- ── Options d'application ──────────────────────────────────────────────── -->
+    <string name="app_option_system_default">Choix du système</string>
+    <string name="app_option_browser_search">Navigateur (recherche)</string>
+
+    <!-- ── Écran voiture / superposition vocale ──────────────────────────────── -->
+    <string name="status_how_can_i_help">Comment puis-je vous aider ?</string>
+    <string name="status_listening">Écoute…</string>
+    <string name="status_processing">Traitement…</string>
+    <string name="status_nothing_recognized">(rien reconnu)</string>
+    <string name="status_mic_unavailable">Microphone indisponible.\nVeuillez appuyer sur \"%1$s\".</string>
+    <string name="status_error_retry">Erreur : %1$s\nVeuillez appuyer sur \"%2$s\".</string>
+    <string name="status_app_not_found">Application introuvable :\n%1$s</string>
+
+    <string name="action_recording">Enregistrement…</string>
+    <string name="action_retry">Réessayer</string>
+
+    <!-- ── Labels de routage ──────────────────────────────────────────────────── -->
+    <string name="routing_music">Musique : %1$s</string>
+    <string name="routing_navigation">Navigation : %1$s</string>
+    <string name="routing_weather">Ouverture de la météo…</string>
+    <string name="routing_call">Appel…</string>
+    <string name="routing_websearch">Recherche : %1$s</string>
+    <string name="routing_not_understood">Commande non reconnue.</string>
+    <string name="routing_not_understood_suggestion">Commande non reconnue. Essayez : \"joue de la musique\", \"conduis vers Berlin\", \"appelle Anna\". Ou activez l\'IA dans les paramètres.</string>
+</resources>
