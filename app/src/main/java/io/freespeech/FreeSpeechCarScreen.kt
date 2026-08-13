@@ -30,13 +30,15 @@ class FreeSpeechCarScreen(carContext: CarContext) : Screen(carContext) {
         /** Absolute recording ceiling, even without silence detection. */
         private const val MAX_RECORD_MS = 12_000L
 
-        /** How long the transcript is shown before the screen resets to ready. */
+        /** How long the result is shown before the screen resets to ready. */
         private const val RESULT_DISPLAY_MS = 4_000L
     }
 
     private val mainHandler = Handler(Looper.getMainLooper())
 
-    @Volatile private var status = "Wie kann ich helfen?"
+    // Status text and button label are initialised from string resources so the
+    // car screen respects the phone's UI language.
+    @Volatile private var status    = carContext.getString(R.string.status_how_can_i_help)
     @Volatile private var isRecording = false
     private var audioRecord: AudioRecord? = null
 
@@ -44,20 +46,25 @@ class FreeSpeechCarScreen(carContext: CarContext) : Screen(carContext) {
         // Auto-start recording when the screen becomes visible; stop when it leaves focus.
         lifecycle.addObserver(object : DefaultLifecycleObserver {
             override fun onStart(owner: LifecycleOwner) = startTranscription()
-            override fun onStop(owner: LifecycleOwner) = cleanup()
+            override fun onStop(owner: LifecycleOwner)  = cleanup()
         })
     }
 
     // ── Template ──────────────────────────────────────────────────────────────
 
     override fun onGetTemplate(): Template {
+        val actionLabel = if (isRecording)
+            carContext.getString(R.string.action_recording)
+        else
+            carContext.getString(R.string.action_retry)
+
         val micAction = Action.Builder()
-            .setTitle(if (isRecording) "Aufnahme läuft…" else "Erneut")
+            .setTitle(actionLabel)
             .setOnClickListener { if (!isRecording) startTranscription() }
             .build()
 
         return MessageTemplate.Builder(status)
-            .setTitle("FreeSpeech")
+            .setTitle(carContext.getString(R.string.app_name))
             .setHeaderAction(Action.APP_ICON)
             .setActionStrip(ActionStrip.Builder().addAction(micAction).build())
             .build()
@@ -67,28 +74,30 @@ class FreeSpeechCarScreen(carContext: CarContext) : Screen(carContext) {
 
     private fun startTranscription() {
         if (isRecording) return
+        val appContext = carContext.applicationContext
         Thread {
             try {
-                setStatus("Zuhören…")
+                setStatus(appContext.getString(R.string.status_listening))
                 val samples = recordWithVad()
                 if (samples.isEmpty()) {
-                    setStatus("Mikrofon nicht verfügbar.\nBitte \"Erneut\" tippen.")
+                    setStatus(appContext.getString(
+                        R.string.status_mic_unavailable,
+                        appContext.getString(R.string.action_retry)
+                    ))
                     return@Thread
                 }
 
-                setStatus("Verarbeitung…")
-                val wav = AudioUtils.buildWav(samples, SAMPLE_RATE)
-                // Use applicationContext so SharedPreferences resolve correctly inside CarContext.
-                val appContext = carContext.applicationContext
+                setStatus(appContext.getString(R.string.status_processing))
+                val wav        = AudioUtils.buildWav(samples, SAMPLE_RATE)
                 val transcript = AudioUtils.sendToWhisper(wav, appContext)
                 Log.i(TAG, "Transcript: $transcript")
 
                 if (transcript.isBlank()) {
-                    setStatus("(nichts erkannt)")
+                    setStatus(appContext.getString(R.string.status_nothing_recognized))
                 } else {
                     val prefs      = appContext.getSharedPreferences("freespeech", android.content.Context.MODE_PRIVATE)
                     val classified = IntentRouter.classify(transcript, prefs, appContext)
-                    val label      = IntentRouter.routingLabel(classified)
+                    val label      = IntentRouter.routingLabel(classified, appContext)
                     Log.i(TAG, "Category: ${classified.category}, query: ${classified.query}")
                     setStatus(label)
 
@@ -99,7 +108,7 @@ class FreeSpeechCarScreen(carContext: CarContext) : Screen(carContext) {
                                 carContext.startActivity(intent)
                             } catch (e: Exception) {
                                 Log.e(TAG, "Could not start activity for ${classified.category}", e)
-                                setStatus("App nicht gefunden:\n${e.message}")
+                                setStatus(appContext.getString(R.string.status_app_not_found, e.message))
                             }
                         }
                     }
@@ -107,13 +116,17 @@ class FreeSpeechCarScreen(carContext: CarContext) : Screen(carContext) {
 
                 // Reset to ready state after displaying the result.
                 mainHandler.postDelayed({
-                    status = "Wie kann ich helfen?"
+                    status = appContext.getString(R.string.status_how_can_i_help)
                     invalidate()
                 }, RESULT_DISPLAY_MS)
 
             } catch (e: Exception) {
                 Log.e(TAG, "Transcription error", e)
-                setStatus("Fehler: ${e.message}\nBitte \"Erneut\" tippen.")
+                setStatus(appContext.getString(
+                    R.string.status_error_retry,
+                    e.message,
+                    appContext.getString(R.string.action_retry)
+                ))
             }
         }.start()
     }
@@ -125,7 +138,7 @@ class FreeSpeechCarScreen(carContext: CarContext) : Screen(carContext) {
      * - speech has been detected AND 1.5 s of silence has elapsed, or
      * - MAX_RECORD_MS is reached.
      *
-     * Returns an empty list if the AudioRecord fails to initialise.
+     * Returns an empty list if AudioRecord fails to initialise.
      */
     private fun recordWithVad(): List<Short> {
         val bufSize = AudioRecord.getMinBufferSize(
@@ -145,7 +158,7 @@ class FreeSpeechCarScreen(carContext: CarContext) : Screen(carContext) {
         audioRecord = ar
         ar.startRecording()
         isRecording = true
-        mainHandler.post { invalidate() } // refresh button label → "Aufnahme läuft…"
+        mainHandler.post { invalidate() }
 
         val samples = mutableListOf<Short>()
         val buf = ShortArray(bufSize / 2)
@@ -155,12 +168,9 @@ class FreeSpeechCarScreen(carContext: CarContext) : Screen(carContext) {
 
         while (isRecording) {
             if (System.currentTimeMillis() - recordingStart > MAX_RECORD_MS) break
-
             val read = ar.read(buf, 0, buf.size)
             if (read <= 0) continue
-
             samples.addAll(buf.take(read))
-
             val rms = Math.sqrt(buf.take(read).sumOf { it.toLong() * it }.toDouble() / read).toFloat()
             if (rms >= SILENCE_RMS_THRESHOLD) {
                 hasSpeech = true
@@ -176,7 +186,7 @@ class FreeSpeechCarScreen(carContext: CarContext) : Screen(carContext) {
         ar.stop()
         ar.release()
         audioRecord = null
-        mainHandler.post { invalidate() } // refresh button label → "Erneut"
+        mainHandler.post { invalidate() }
         return samples
     }
 

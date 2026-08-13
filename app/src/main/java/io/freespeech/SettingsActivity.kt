@@ -70,16 +70,15 @@ class SettingsActivity : AppCompatActivity() {
                 .putString("search_engine", searchEngines[seSpinner.selectedItemPosition].urlPrefix)
                 // AI settings
                 .putBoolean("use_ai", findViewById<CheckBox>(R.id.use_ai).isChecked)
-                .putString("ai_engine",   AiClassifier.ENGINE_OPTIONS[
-                    (findViewById<Spinner>(R.id.spinner_ai_engine).selectedItemPosition)
-                        .coerceIn(0, AiClassifier.ENGINE_OPTIONS.lastIndex)
-                ].second)
+                .putString("ai_engine", AiClassifier.ENGINE_KEYS.getOrElse(
+                    findViewById<Spinner>(R.id.spinner_ai_engine).selectedItemPosition
+                ) { AiClassifier.ENGINE_GEMINI })
                 .putString("ai_api_key", findViewById<EditText>(R.id.ai_api_key).text.toString().trim())
                 .putString("ai_base_url", findViewById<EditText>(R.id.ai_base_url).text.toString().trim())
                 .putString("ai_model",   findViewById<EditText>(R.id.ai_model).text.toString().trim())
 
             edit.apply()
-            Toast.makeText(this, "Gespeichert", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, getString(R.string.toast_saved), Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -101,14 +100,18 @@ class SettingsActivity : AppCompatActivity() {
             aiConfig.visibility = if (checked) View.VISIBLE else View.GONE
         }
 
-        // Engine spinner.
-        val engineLabels = AiClassifier.ENGINE_OPTIONS.map { it.first }
+        // Engine spinner — labels come from string resources so the phone locale is respected.
+        val engineLabels = listOf(
+            getString(R.string.engine_gemini),
+            getString(R.string.engine_openai),
+            getString(R.string.engine_ollama),
+        )
         ArrayAdapter(this, android.R.layout.simple_spinner_item, engineLabels)
             .also { it.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item) }
             .let { engineSpinner.adapter = it }
 
         val savedEngineKey = prefs.getString("ai_engine", AiClassifier.ENGINE_GEMINI)!!
-        val savedEngineIdx = AiClassifier.ENGINE_OPTIONS.indexOfFirst { it.second == savedEngineKey }.coerceAtLeast(0)
+        val savedEngineIdx = AiClassifier.ENGINE_KEYS.indexOf(savedEngineKey).coerceAtLeast(0)
 
         // Load saved values into the text fields (NOT from defaults — user may have customised them).
         val def = AiClassifier.DEFAULTS[savedEngineKey]!!
@@ -123,7 +126,7 @@ class SettingsActivity : AppCompatActivity() {
         engineSpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
             override fun onItemSelected(parent: AdapterView<*>, view: View?, pos: Int, id: Long) {
                 if (skipFirst) { skipFirst = false; return }
-                val key = AiClassifier.ENGINE_OPTIONS.getOrNull(pos)?.second ?: return
+                val key = AiClassifier.ENGINE_KEYS.getOrNull(pos) ?: return
                 val d   = AiClassifier.DEFAULTS[key] ?: return
                 // Only auto-fill URL and model — don't overwrite a key the user already typed.
                 baseUrlField.setText(d.baseUrl)
@@ -138,12 +141,9 @@ class SettingsActivity : AppCompatActivity() {
 
     private fun updateEngineHint(hint: TextView, engineKey: String) {
         hint.text = when (engineKey) {
-            AiClassifier.ENGINE_GEMINI ->
-                "Kostenloser API-Schluessel unter ai.google.dev — kein Zahlungsmittel noetig."
-            AiClassifier.ENGINE_OPENAI ->
-                "API-Schluessel unter platform.openai.com/api-keys. Guenstigstes Modell: gpt-4o-mini."
-            AiClassifier.ENGINE_OLLAMA ->
-                "Ollama laeuft lokal auf deinem Server — kein API-Schluessel noetig. Empfohlenes Modell: qwen2.5:7b."
+            AiClassifier.ENGINE_GEMINI -> getString(R.string.engine_hint_gemini)
+            AiClassifier.ENGINE_OPENAI -> getString(R.string.engine_hint_openai)
+            AiClassifier.ENGINE_OLLAMA -> getString(R.string.engine_hint_ollama)
             else -> ""
         }
     }

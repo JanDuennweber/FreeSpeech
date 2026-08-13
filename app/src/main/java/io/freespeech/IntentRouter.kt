@@ -6,19 +6,25 @@ import android.content.Intent
 import android.content.SharedPreferences
 import android.net.Uri
 import android.provider.MediaStore
+import io.freespeech.R
 
 // ── Category ───────────────────────────────────────────────────────────────────
 
 enum class VoiceCategory(
     /** SharedPreferences key storing the chosen package name for this category. */
     val prefKey: String,
+    /**
+     * English label used in the AI prompt — intentionally not localised so the
+     * prompt stays consistent regardless of the phone's UI language.
+     * User-facing category names live in strings.xml (settings_music_label etc.).
+     */
     val displayName: String,
 ) {
-    MUSIC     ("app_music",      "Musik"),
-    WEATHER   ("app_weather",    "Wetter"),
+    MUSIC     ("app_music",      "Music"),
+    WEATHER   ("app_weather",    "Weather"),
     NAVIGATION("app_navigation", "Navigation"),
-    CALL      ("app_call",       "Anruf"),
-    WEB_SEARCH("app_websearch",  "Websuche"),
+    CALL      ("app_call",       "Call"),
+    WEB_SEARCH("app_websearch",  "Web Search"),
     NONE      ("",               ""),
 }
 
@@ -88,12 +94,8 @@ object IntentRouter {
         for (kw in navKeywords)     if (lower.contains(kw)) return ClassifiedIntent(VoiceCategory.NAVIGATION, extractAfter(lower, kw).ifBlank { t })
         for (kw in weatherKeywords) if (lower.contains(kw)) return ClassifiedIntent(VoiceCategory.WEATHER,   t)
 
-        // Unknown — return NONE with a helpful not-understood message.
-        return ClassifiedIntent(
-            VoiceCategory.NONE,
-            "",
-            "Befehl nicht erkannt. Versuche: \"spiel Musik\", \"fahre nach Berlin\", \"ruf Anna an\". Oder aktiviere KI in den Einstellungen.",
-        )
+        // Unknown — NONE; routingLabel will show the localised not-understood message.
+        return ClassifiedIntent(VoiceCategory.NONE, "")
     }
 
     /** Returns the text that follows [keyword] in [text], trimmed of leading punctuation. */
@@ -157,17 +159,18 @@ object IntentRouter {
     // ── routingLabel ───────────────────────────────────────────────────────────
 
     /**
-     * Short human-readable status to show on screen before launching.
-     * Prefers the AI's own wording when available.
+     * Short localised status to show on screen before launching.
+     * Prefers the AI's own wording (already in the user's language) when available.
+     * Falls back to a string-resource label so the phone locale is respected.
      */
-    fun routingLabel(classified: ClassifiedIntent): String =
+    fun routingLabel(classified: ClassifiedIntent, context: Context): String =
         classified.aiMessage ?: when (classified.category) {
-            VoiceCategory.MUSIC      -> "Musik: ${classified.query}"
-            VoiceCategory.NAVIGATION -> "Navigation: ${classified.query}"
-            VoiceCategory.WEATHER    -> "Wetter wird geoeffnet…"
-            VoiceCategory.CALL       -> "Waehle…"
-            VoiceCategory.WEB_SEARCH -> "Suche: ${classified.query}"
-            VoiceCategory.NONE       -> "Befehl nicht erkannt."
+            VoiceCategory.MUSIC      -> context.getString(R.string.routing_music,      classified.query)
+            VoiceCategory.NAVIGATION -> context.getString(R.string.routing_navigation, classified.query)
+            VoiceCategory.WEATHER    -> context.getString(R.string.routing_weather)
+            VoiceCategory.CALL       -> context.getString(R.string.routing_call)
+            VoiceCategory.WEB_SEARCH -> context.getString(R.string.routing_websearch,  classified.query)
+            VoiceCategory.NONE       -> context.getString(R.string.routing_not_understood_suggestion)
         }
 
     // ── helpers ────────────────────────────────────────────────────────────────

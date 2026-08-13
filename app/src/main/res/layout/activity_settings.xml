@@ -14,7 +14,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="FreeSpeech"
+            android:text="@string/app_name"
             android:textSize="24sp"
             android:textStyle="bold"
             android:layout_marginBottom="4dp" />
@@ -22,7 +22,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Open-source voice assistant for Android Auto on /e/OS"
+            android:text="@string/settings_subtitle"
             android:layout_marginBottom="32dp" />
 
         <!-- ── Whisper endpoint ─────────────────────────────────────────────── -->
@@ -30,7 +30,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Whisper API endpoint URL:"
+            android:text="@string/settings_whisper_url_label"
             android:textStyle="bold"
             android:layout_marginBottom="8dp" />
 
@@ -39,13 +39,13 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:inputType="textUri"
-            android:hint="http://your-server:8080/v1/audio/transcriptions"
+            android:hint="@string/settings_whisper_url_hint"
             android:layout_marginBottom="8dp" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Point this at any OpenAI-compatible Whisper endpoint (self-hosted faster-whisper, LocalAI, whisper.cpp server, etc.)"
+            android:text="@string/settings_whisper_url_desc"
             android:textSize="12sp"
             android:layout_marginBottom="24dp" />
 
@@ -53,7 +53,7 @@
             android:id="@+id/save_button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Speichern"
+            android:text="@string/btn_save"
             android:layout_marginBottom="32dp" />
 
         <View
@@ -67,7 +67,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Sprachbefehle → Apps"
+            android:text="@string/settings_command_routing_title"
             android:textSize="18sp"
             android:textStyle="bold"
             android:layout_marginBottom="4dp" />
@@ -75,15 +75,14 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Wähle, welche App für jeden Befehlstyp geöffnet wird. Nur installierte Apps werden angezeigt."
+            android:text="@string/settings_command_routing_desc"
             android:textSize="12sp"
             android:layout_marginBottom="24dp" />
 
-        <!-- Music -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Musik  (z.B. spiel David Bowie)"
+            android:text="@string/settings_music_label"
             android:textStyle="bold"
             android:layout_marginBottom="4dp" />
         <Spinner
@@ -92,11 +91,10 @@
             android:layout_height="wrap_content"
             android:layout_marginBottom="20dp" />
 
-        <!-- Weather -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Wetter  (z.B. wird es heute regnen?)"
+            android:text="@string/settings_weather_label"
             android:textStyle="bold"
             android:layout_marginBottom="4dp" />
         <Spinner
@@ -105,11 +103,10 @@
             android:layout_height="wrap_content"
             android:layout_marginBottom="20dp" />
 
-        <!-- Navigation -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Navigation  (z.B. fahre nach Hamburg)"
+            android:text="@string/settings_nav_label"
             android:textStyle="bold"
             android:layout_marginBottom="4dp" />
         <Spinner
@@ -118,11 +115,10 @@
             android:layout_height="wrap_content"
             android:layout_marginBottom="20dp" />
 
-        <!-- Web search -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Websuche  (alles andere)"
+            android:text="@string/settings_websearch_label"
             android:textStyle="bold"
             android:layout_marginBottom="4dp" />
         <Spinner
@@ -131,11 +127,10 @@
             android:layout_height="wrap_content"
             android:layout_marginBottom="20dp" />
 
-        <!-- Search engine -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Suchmaschine für Websuche:"
+            android:text="@string/settings_searchengine_label"
             android:textStyle="bold"
             android:layout_marginBottom="4dp" />
         <Spinner
@@ -147,7 +142,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Tipp: Anruf-Befehle oeffnen immer das Telefon — keine Konfiguration noetig."
+            android:text="@string/settings_call_hint"
             android:textSize="12sp"
             android:layout_marginBottom="8dp" />
 
@@ -163,7 +158,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="KI-Befehlsinterpretation"
+            android:text="@string/settings_ai_title"
             android:textSize="18sp"
             android:textStyle="bold"
             android:layout_marginBottom="4dp" />
@@ -171,7 +166,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Wenn aktiviert, versteht FreeSpeech auch freie Saetze wie &quot;Ich haette Hunger&quot; oder &quot;Rock-Musik waere toll&quot;. Die Transkription wird dazu an die konfigurierte KI gesendet."
+            android:text="@string/settings_ai_desc"
             android:textSize="12sp"
             android:layout_marginBottom="16dp" />
 
@@ -179,10 +174,9 @@
             android:id="@+id/use_ai"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="KI fuer Befehlsinterpretation nutzen"
+            android:text="@string/settings_use_ai"
             android:layout_marginBottom="16dp" />
 
-        <!-- This block is shown/hidden by SettingsActivity based on the checkbox. -->
         <LinearLayout
             android:id="@+id/ai_config"
             android:layout_width="match_parent"
@@ -193,7 +187,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="KI-Engine:"
+                android:text="@string/settings_ai_engine_label"
                 android:textStyle="bold"
                 android:layout_marginBottom="4dp" />
             <Spinner
@@ -211,7 +205,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="API-Schluessel:"
+                android:text="@string/settings_ai_api_key_label"
                 android:textStyle="bold"
                 android:layout_marginBottom="4dp" />
             <EditText
@@ -219,19 +213,19 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:inputType="textPassword"
-                android:hint="Leer lassen fuer Ollama"
+                android:hint="@string/settings_ai_api_key_hint"
                 android:layout_marginBottom="4dp" />
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Gemini: kostenloser API-Schluessel unter ai.google.dev (kein Zahlungsmittel noetig)."
+                android:text="@string/settings_ai_api_key_desc"
                 android:textSize="12sp"
                 android:layout_marginBottom="16dp" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Basis-URL:"
+                android:text="@string/settings_ai_base_url_label"
                 android:textStyle="bold"
                 android:layout_marginBottom="4dp" />
             <EditText
@@ -244,7 +238,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Modell:"
+                android:text="@string/settings_ai_model_label"
                 android:textStyle="bold"
                 android:layout_marginBottom="4dp" />
             <EditText

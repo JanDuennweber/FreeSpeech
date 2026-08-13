@@ -44,7 +44,7 @@ class FreeSpeechVoiceInteractionSession(context: Context) : VoiceInteractionSess
 
     override fun onShow(args: Bundle?, showFlags: Int) {
         super.onShow(args, showFlags)
-        setStatus("Zuhören…")
+        setStatus(context.getString(R.string.status_listening))
         Thread(::runTranscription).start()
     }
 
@@ -63,18 +63,18 @@ class FreeSpeechVoiceInteractionSession(context: Context) : VoiceInteractionSess
             val samples = recordWithVad()
             if (samples.isEmpty()) { hide(); return }
 
-            setStatus("Verarbeitung…")
+            setStatus(context.getString(R.string.status_processing))
             val wav = AudioUtils.buildWav(samples, SAMPLE_RATE)
             val transcript = AudioUtils.sendToWhisper(wav, context)
             Log.i(TAG, "Transcript: $transcript")
 
             if (transcript.isBlank()) {
-                setStatus("(nichts erkannt)")
+                setStatus(context.getString(R.string.status_nothing_recognized))
                 mainHandler.postDelayed({ hide() }, 2_000)
             } else {
-                val prefs      = context.getSharedPreferences("freespeech", android.content.Context.MODE_PRIVATE)
+                val prefs      = context.getSharedPreferences("freespeech", Context.MODE_PRIVATE)
                 val classified = IntentRouter.classify(transcript, prefs, context)
-                val label      = IntentRouter.routingLabel(classified)
+                val label      = IntentRouter.routingLabel(classified, context)
                 Log.i(TAG, "Category: ${classified.category}, query: ${classified.query}")
                 setStatus(label)
 
@@ -85,7 +85,7 @@ class FreeSpeechVoiceInteractionSession(context: Context) : VoiceInteractionSess
                             context.startActivity(intent)
                         } catch (e: Exception) {
                             Log.e(TAG, "Could not start activity for ${classified.category}", e)
-                            setStatus("App nicht gefunden:\n${e.message}")
+                            setStatus(context.getString(R.string.status_app_not_found, e.message))
                         }
                     }
                 }
@@ -95,7 +95,8 @@ class FreeSpeechVoiceInteractionSession(context: Context) : VoiceInteractionSess
             }
         } catch (e: Exception) {
             Log.e(TAG, "Transcription failed", e)
-            setStatus("Fehler: ${e.message}")
+            setStatus(context.getString(R.string.status_error_retry, e.message,
+                context.getString(R.string.action_retry)))
             mainHandler.postDelayed({ hide() }, 2_000)
         }
     }

@@ -2,6 +2,7 @@ package io.freespeech
 
 import android.content.Context
 import android.content.pm.PackageManager
+import io.freespeech.R
 
 /** A selectable app for a given VoiceCategory. [packageName] is null for "let Android choose". */
 data class AppOption(val label: String, val packageName: String?)
@@ -9,10 +10,14 @@ data class AppOption(val label: String, val packageName: String?)
 /** Known candidate apps per category; filtered at runtime to only installed packages. */
 object AppCandidates {
 
+    // Placeholder keys used in the catalog; replaced with localised strings at runtime.
+    private const val GENERIC_SYSTEM_DEFAULT = "__system_default__"
+    private const val GENERIC_BROWSER_SEARCH = "__browser_search__"
+
     private val catalog: Map<VoiceCategory, List<AppOption>> = mapOf(
 
         VoiceCategory.MUSIC to listOf(
-            AppOption("Systemauswahl (Standard)",   null),
+            AppOption(GENERIC_SYSTEM_DEFAULT,       null),
             AppOption("Spotify",                    "com.spotify.music"),
             AppOption("Tidal",                      "com.aspiro.tidal"),
             AppOption("YouTube Music",              "com.google.android.apps.youtube.music"),
@@ -24,7 +29,7 @@ object AppCandidates {
         ),
 
         VoiceCategory.WEATHER to listOf(
-            AppOption("Browser (Suche)",             null),
+            AppOption(GENERIC_BROWSER_SEARCH,        null),
             AppOption("DWD WarnWetter",              "de.dwd.warnwetter"),
             AppOption("WetterOnline",                "de.wetteronline.wetterapp"),
             AppOption("wetter.com",                  "de.wetter.com"),
@@ -34,7 +39,7 @@ object AppCandidates {
         ),
 
         VoiceCategory.NAVIGATION to listOf(
-            AppOption("Systemauswahl (Standard)",   null),
+            AppOption(GENERIC_SYSTEM_DEFAULT,       null),
             AppOption("OsmAnd+",                    "net.osmand"),
             AppOption("OsmAnd",                     "net.osmand.plus"),
             AppOption("Maps (Google-Stub)",          "com.google.android.apps.maps"),
@@ -45,7 +50,7 @@ object AppCandidates {
         ),
 
         VoiceCategory.WEB_SEARCH to listOf(
-            AppOption("Systemauswahl (Standard)",   null),
+            AppOption(GENERIC_SYSTEM_DEFAULT,       null),
             AppOption("Firefox",                    "org.mozilla.firefox"),
             AppOption("Fennec F-Droid",             "org.mozilla.fennec_fdroid"),
             AppOption("Mull",                       "us.spotco.fennec_dos"),
@@ -55,12 +60,21 @@ object AppCandidates {
         ),
     )
 
-    /** Returns only the candidates actually installed on the device. */
+    /**
+     * Returns only the candidates actually installed on the device.
+     * Generic placeholder labels are replaced with localised strings at this point.
+     */
     fun forCategory(context: Context, category: VoiceCategory): List<AppOption> {
         val pm = context.packageManager
-        return (catalog[category] ?: emptyList()).filter { opt ->
-            opt.packageName == null || pm.isInstalled(opt.packageName)
-        }
+        return (catalog[category] ?: emptyList())
+            .filter { opt -> opt.packageName == null || pm.isInstalled(opt.packageName) }
+            .map { opt ->
+                when (opt.label) {
+                    GENERIC_SYSTEM_DEFAULT -> opt.copy(label = context.getString(R.string.app_option_system_default))
+                    GENERIC_BROWSER_SEARCH -> opt.copy(label = context.getString(R.string.app_option_browser_search))
+                    else -> opt
+                }
+            }
     }
 
     private fun PackageManager.isInstalled(pkg: String): Boolean = try {

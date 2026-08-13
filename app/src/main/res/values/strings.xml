@@ -1,4 +1,73 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">FreeSpeech</string>
+
+    <!-- ── Settings screen ─────────────────────────────────────────────────── -->
+    <string name="settings_subtitle">Open-source voice assistant for Android Auto on /e/OS</string>
+
+    <string name="settings_whisper_url_label">Whisper API endpoint URL:</string>
+    <string name="settings_whisper_url_hint">http://your-server:8080/v1/audio/transcriptions</string>
+    <string name="settings_whisper_url_desc">Point this at any OpenAI-compatible Whisper endpoint (self-hosted faster-whisper, LocalAI, whisper.cpp server, etc.)</string>
+
+    <string name="btn_save">Save</string>
+
+    <!-- Command routing -->
+    <string name="settings_command_routing_title">Voice commands → Apps</string>
+    <string name="settings_command_routing_desc">Choose which app opens for each command type. Only installed apps are shown.</string>
+    <string name="settings_music_label">Music  (e.g. play David Bowie)</string>
+    <string name="settings_weather_label">Weather  (e.g. will it rain today?)</string>
+    <string name="settings_nav_label">Navigation  (e.g. drive to Hamburg station)</string>
+    <string name="settings_websearch_label">Web search  (everything else)</string>
+    <string name="settings_searchengine_label">Search engine for web search:</string>
+    <string name="settings_call_hint">Tip: Call commands always open the phone — no configuration needed.</string>
+
+    <!-- AI section -->
+    <string name="settings_ai_title">AI command interpretation</string>
+    <string name="settings_ai_desc">When enabled, FreeSpeech understands free-form sentences like \"I\'m hungry\" or \"some rock music would be nice\". The transcription is sent to the configured AI.</string>
+    <string name="settings_use_ai">Use AI for command interpretation</string>
+    <string name="settings_ai_engine_label">AI engine:</string>
+    <string name="settings_ai_api_key_label">API key:</string>
+    <string name="settings_ai_api_key_hint">Leave blank for Ollama</string>
+    <string name="settings_ai_api_key_desc">Gemini: free API key at ai.google.dev — no payment method required.</string>
+    <string name="settings_ai_base_url_label">Base URL:</string>
+    <string name="settings_ai_model_label">Model:</string>
+
+    <string name="toast_saved">Saved</string>
+
+    <!-- AI engine spinner labels -->
+    <string name="engine_gemini">Gemini (free, Google)</string>
+    <string name="engine_openai">OpenAI / GPT</string>
+    <string name="engine_ollama">Ollama (local, private)</string>
+
+    <!-- AI engine hints (shown below engine spinner) -->
+    <string name="engine_hint_gemini">Free API key at ai.google.dev — no payment method required.</string>
+    <string name="engine_hint_openai">API key at platform.openai.com/api-keys. Cheapest model: gpt-4o-mini.</string>
+    <string name="engine_hint_ollama">Ollama runs locally on your server — no API key needed. Recommended model: qwen2.5:7b.</string>
+
+    <!-- ── App option labels (generic entries in category spinners) ─────────── -->
+    <string name="app_option_system_default">System default</string>
+    <string name="app_option_browser_search">Browser (search)</string>
+
+    <!-- ── Car screen / voice overlay ──────────────────────────────────────── -->
+    <string name="status_how_can_i_help">How can I help?</string>
+    <string name="status_listening">Listening…</string>
+    <string name="status_processing">Processing…</string>
+    <string name="status_nothing_recognized">(nothing recognized)</string>
+    <!-- %1$s = error message -->
+    <string name="status_mic_unavailable">Microphone unavailable.\nPlease tap \"%1$s\".</string>
+    <string name="status_error_retry">Error: %1$s\nPlease tap \"%2$s\".</string>
+    <string name="status_app_not_found">App not found:\n%1$s</string>
+
+    <string name="action_recording">Recording…</string>
+    <string name="action_retry">Retry</string>
+
+    <!-- ── Routing labels (shown on screen before launching an app) ─────────── -->
+    <!-- %1$s = query / artist / destination -->
+    <string name="routing_music">Music: %1$s</string>
+    <string name="routing_navigation">Navigation: %1$s</string>
+    <string name="routing_weather">Opening weather…</string>
+    <string name="routing_call">Calling…</string>
+    <string name="routing_websearch">Search: %1$s</string>
+    <string name="routing_not_understood">Command not understood.</string>
+    <string name="routing_not_understood_suggestion">Command not understood. Try: \"play music\", \"drive to Berlin\", \"call Anna\". Or enable AI in settings.</string>
 </resources>

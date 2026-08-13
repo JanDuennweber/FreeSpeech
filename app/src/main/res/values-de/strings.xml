@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">FreeSpeech</string>
+
+    <!-- ── Einstellungen ────────────────────────────────────────────────────── -->
+    <string name="settings_subtitle">Open-Source-Sprachassistent für Android Auto auf /e/OS</string>
+
+    <string name="settings_whisper_url_label">Whisper-API-Endpunkt-URL:</string>
+    <string name="settings_whisper_url_hint">http://dein-server:8080/v1/audio/transcriptions</string>
+    <string name="settings_whisper_url_desc">Beliebiger OpenAI-kompatibler Whisper-Endpunkt (self-hosted faster-whisper, LocalAI, whisper.cpp-Server etc.)</string>
+
+    <string name="btn_save">Speichern</string>
+
+    <!-- Befehlsweiterleitung -->
+    <string name="settings_command_routing_title">Sprachbefehle → Apps</string>
+    <string name="settings_command_routing_desc">Wähle, welche App für jeden Befehlstyp geöffnet wird. Nur installierte Apps werden angezeigt.</string>
+    <string name="settings_music_label">Musik  (z.B. spiel David Bowie)</string>
+    <string name="settings_weather_label">Wetter  (z.B. wird es heute regnen?)</string>
+    <string name="settings_nav_label">Navigation  (z.B. fahre nach Hamburg Hbf)</string>
+    <string name="settings_websearch_label">Websuche  (alles andere)</string>
+    <string name="settings_searchengine_label">Suchmaschine für Websuche:</string>
+    <string name="settings_call_hint">Tipp: Anruf-Befehle öffnen immer das Telefon — keine Konfiguration nötig.</string>
+
+    <!-- KI-Bereich -->
+    <string name="settings_ai_title">KI-Befehlsinterpretation</string>
+    <string name="settings_ai_desc">Wenn aktiviert, versteht FreeSpeech auch freie Sätze wie \"Ich hätte Hunger\" oder \"Rock-Musik wäre toll\". Die Transkription wird an die konfigurierte KI gesendet.</string>
+    <string name="settings_use_ai">KI für Befehlsinterpretation nutzen</string>
+    <string name="settings_ai_engine_label">KI-Engine:</string>
+    <string name="settings_ai_api_key_label">API-Schlüssel:</string>
+    <string name="settings_ai_api_key_hint">Leer lassen für Ollama</string>
+    <string name="settings_ai_api_key_desc">Gemini: kostenloser API-Schlüssel unter ai.google.dev — kein Zahlungsmittel nötig.</string>
+    <string name="settings_ai_base_url_label">Basis-URL:</string>
+    <string name="settings_ai_model_label">Modell:</string>
+
+    <string name="toast_saved">Gespeichert</string>
+
+    <!-- KI-Engine-Auswahl -->
+    <string name="engine_gemini">Gemini (kostenlos, Google)</string>
+    <string name="engine_openai">OpenAI / GPT</string>
+    <string name="engine_ollama">Ollama (lokal, privat)</string>
+
+    <!-- Hinweise zur KI-Engine -->
+    <string name="engine_hint_gemini">Kostenloser API-Schlüssel unter ai.google.dev — kein Zahlungsmittel nötig.</string>
+    <string name="engine_hint_openai">API-Schlüssel unter platform.openai.com/api-keys. Günstigstes Modell: gpt-4o-mini.</string>
+    <string name="engine_hint_ollama">Ollama läuft lokal auf deinem Server — kein API-Schlüssel nötig. Empfohlenes Modell: qwen2.5:7b.</string>
+
+    <!-- ── App-Optionen ───────────────────────────────────────────────────── -->
+    <string name="app_option_system_default">Systemauswahl</string>
+    <string name="app_option_browser_search">Browser (Suche)</string>
+
+    <!-- ── Auto-Display / Overlay ──────────────────────────────────────────── -->
+    <string name="status_how_can_i_help">Wie kann ich helfen?</string>
+    <string name="status_listening">Zuhören…</string>
+    <string name="status_processing">Verarbeitung…</string>
+    <string name="status_nothing_recognized">(nichts erkannt)</string>
+    <string name="status_mic_unavailable">Mikrofon nicht verfügbar.\nBitte \"%1$s\" tippen.</string>
+    <string name="status_error_retry">Fehler: %1$s\nBitte \"%2$s\" tippen.</string>
+    <string name="status_app_not_found">App nicht gefunden:\n%1$s</string>
+
+    <string name="action_recording">Aufnahme läuft…</string>
+    <string name="action_retry">Erneut</string>
+
+    <!-- ── Weiterleitungs-Labels ────────────────────────────────────────────── -->
+    <string name="routing_music">Musik: %1$s</string>
+    <string name="routing_navigation">Navigation: %1$s</string>
+    <string name="routing_weather">Wetter wird geöffnet…</string>
+    <string name="routing_call">Wähle…</string>
+    <string name="routing_websearch">Suche: %1$s</string>
+    <string name="routing_not_understood">Befehl nicht erkannt.</string>
+    <string name="routing_not_understood_suggestion">Befehl nicht erkannt. Versuche: \"spiel Musik\", \"fahre nach Berlin\", \"ruf Anna an\". Oder aktiviere KI in den Einstellungen.</string>
+</resources>

@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.util.Log
+import io.freespeech.R
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -57,12 +58,11 @@ class AiClassifier(
             ),
         )
 
-        /** Engine display labels — index matches engine key order above. */
-        val ENGINE_OPTIONS: List<Pair<String, String>> = listOf(
-            "Gemini (kostenlos, Google)"   to ENGINE_GEMINI,
-            "OpenAI / GPT"                 to ENGINE_OPENAI,
-            "Ollama (lokal, privat)"       to ENGINE_OLLAMA,
-        )
+        /**
+         * Ordered engine keys — UI labels are string resources, not hardcoded here,
+         * so the spinner in SettingsActivity can use the phone's locale.
+         */
+        val ENGINE_KEYS = listOf(ENGINE_GEMINI, ENGINE_OPENAI, ENGINE_OLLAMA)
     }
 
     private val http = OkHttpClient.Builder()
@@ -123,9 +123,10 @@ Rules:
         """.trimIndent()
     }
 
-    /** Returns the human-readable app name configured for [cat], or "Systemauswahl". */
+    /** Returns the human-readable app name configured for [cat], or the localised "System default". */
     private fun appLabel(cat: VoiceCategory): String {
-        val pkg = prefs.getString(cat.prefKey, null)?.takeIf { it.isNotBlank() } ?: return "Systemauswahl"
+        val pkg = prefs.getString(cat.prefKey, null)?.takeIf { it.isNotBlank() }
+            ?: return context.getString(R.string.app_option_system_default)
         return try {
             context.packageManager
                 .getApplicationLabel(context.packageManager.getApplicationInfo(pkg, 0))
