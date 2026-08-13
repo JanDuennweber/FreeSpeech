@@ -31,8 +31,11 @@ class FreeSpeechCarScreen(carContext: CarContext) : Screen(carContext) {
         /** Absolute recording ceiling, even without silence detection. */
         private const val MAX_RECORD_MS = 12_000L
 
-        /** How long the result is shown before the screen resets to ready. */
+        /** How long the result is shown before the screen resets to ready (non-TTS path). */
         private const val RESULT_DISPLAY_MS = 4_000L
+
+        /** Pause after TTS finishes before returning to the ready prompt. */
+        private const val POST_TTS_PAUSE_MS = 800L
     }
 
     private val mainHandler = Handler(Looper.getMainLooper())
@@ -42,6 +45,13 @@ class FreeSpeechCarScreen(carContext: CarContext) : Screen(carContext) {
     @Volatile private var status    = carContext.getString(R.string.status_how_can_i_help)
     @Volatile private var isRecording = false
     private var audioRecord: AudioRecord? = null
+
+    // TTS player — speaks AI responses for NONE/informational commands through the car speaker.
+    private val ttsPlayer: TtsPlayer by lazy {
+        TtsPlayer(carContext.applicationContext,
+            carContext.applicationContext.getSharedPreferences("freespeech",
+                android.content.Context.MODE_PRIVATE))
+    }
 
     init {
         // Auto-start recording when the screen becomes visible; stop when it leaves focus.
@@ -58,6 +68,7 @@ class FreeSpeechCarScreen(carContext: CarContext) : Screen(carContext) {
             }
             override fun onStop(owner: LifecycleOwner) {
                 WakeWordService.wakeListener = null
+                ttsPlayer.release()
                 cleanup()
             }
         })
@@ -111,37 +122,48 @@ class FreeSpeechCarScreen(carContext: CarContext) : Screen(carContext) {
 
                 if (transcript.isBlank()) {
                     setStatus(appContext.getString(R.string.status_nothing_recognized))
-                } else {
-                    val prefs      = appContext.getSharedPreferences("freespeech", android.content.Context.MODE_PRIVATE)
-                    val classified = IntentRouter.classify(transcript, prefs, appContext)
-                    val label      = IntentRouter.routingLabel(classified, appContext)
-                    Log.i(TAG, "Category: ${classified.category}, query: ${classified.query}")
-                    setStatus(label)
-
-                    // Anonymous log — fire-and-forget, never blocks.
-                    val aiEngine = if (classified.aiMessage != null)
-                        prefs.getString("ai_engine", AiClassifier.ENGINE_GEMINI) else null
-                    CommandLogger.post(appContext, transcript, classified.category,
-                        classified.query, result.language, aiEngine, wav)
-
-                    if (classified.category != VoiceCategory.NONE) {
-                        val intent = IntentRouter.buildIntent(classified, prefs)
-                        if (intent != null) {
-                            try {
-                                carContext.startActivity(intent)
-                            } catch (e: Exception) {
-                                Log.e(TAG, "Could not start activity for ${classified.category}", e)
-                                setStatus(appContext.getString(R.string.status_app_not_found, e.message))
-                            }
-                        }
-                    }
+                    mainHandler.postDelayed({ resetStatus(appContext) }, RESULT_DISPLAY_MS)
+                    return@Thread
                 }
 
-                // Reset to ready state after displaying the result.
-                mainHandler.postDelayed({
-                    status = appContext.getString(R.string.status_how_can_i_help)
-                    invalidate()
-                }, RESULT_DISPLAY_MS)
+                val prefs      = appContext.getSharedPreferences("freespeech", android.content.Context.MODE_PRIVATE)
+                val classified = IntentRouter.classify(transcript, prefs, appContext)
+                val label      = IntentRouter.routingLabel(classified, appContext)
+                Log.i(TAG, "Category: ${classified.category}, query: ${classified.query}")
+                setStatus(label)
+
+                // Anonymous log — fire-and-forget, never blocks.
+                val aiEngine = if (classified.aiMessage != null)
+                    prefs.getString("ai_engine", AiClassifier.ENGINE_GEMINI) else null
+                CommandLogger.post(appContext, transcript, classified.category,
+                    classified.query, result.language, aiEngine, wav)
+
+                if (classified.category != VoiceCategory.NONE) {
+                    // App-launching command: start the target activity, then reset the screen.
+                    val intent = IntentRouter.buildIntent(classified, prefs)
+                    if (intent != null) {
+                        try {
+                            carContext.startActivity(intent)
+                        } catch (e: Exception) {
+                            Log.e(TAG, "Could not start activity for ${classified.category}", e)
+                            setStatus(appContext.getString(R.string.status_app_not_found, e.message))
+                        }
+                    }
+                    mainHandler.postDelayed({ resetStatus(appContext) }, RESULT_DISPLAY_MS)
+                } else {
+                    // NONE: no app to launch — speak the AI response through the car speaker
+                    // if the console is configured (TTS proxy lives there).  Falls back to
+                    // the timed text-only display when console or TTS is unavailable.
+                    val spokenText = classified.aiMessage
+                    val consoleUrl = prefs.getString("console_url", "").orEmpty().trim()
+                    if (!spokenText.isNullOrBlank() && consoleUrl.isNotEmpty()) {
+                        ttsPlayer.speak(spokenText) {
+                            mainHandler.postDelayed({ resetStatus(appContext) }, POST_TTS_PAUSE_MS)
+                        }
+                    } else {
+                        mainHandler.postDelayed({ resetStatus(appContext) }, RESULT_DISPLAY_MS)
+                    }
+                }
 
             } catch (e: Exception) {
                 Log.e(TAG, "Transcription error", e)
@@ -222,6 +244,11 @@ class FreeSpeechCarScreen(carContext: CarContext) : Screen(carContext) {
     private fun setStatus(msg: String) {
         status = msg
         mainHandler.post { invalidate() }
+    }
+
+    private fun resetStatus(ctx: android.content.Context) {
+        status = ctx.getString(R.string.status_how_can_i_help)
+        invalidate()
     }
 
     private fun cleanup() {

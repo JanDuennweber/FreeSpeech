@@ -114,12 +114,12 @@ class AiClassifier(
         }
 
         return """
-You are an intent classifier for a voice assistant built into a car.
+You are an intent classifier and voice assistant for a car.
 The user's speech was transcribed by Whisper and may contain recognition errors.
 
 Available categories with their configured apps:
 $categoryBlock
-- NONE: command not understood
+- NONE: the request cannot be mapped to any of the above categories
 
 User said: "$transcript"
 
@@ -129,7 +129,11 @@ Reply with exactly one JSON object and nothing else — no markdown, no explanat
 Rules:
 - category  one of MUSIC, WEATHER, NAVIGATION, CALL, WEB_SEARCH, NONE
 - query     extracted subject (artist, destination, contact, search term); empty for WEATHER/CALL
-- message   confirmation in the user's language, max 8 words; if NONE, say in one sentence what kind of command to use instead
+- message   spoken text in the user's language:
+              for MUSIC/WEATHER/NAVIGATION/CALL/WEB_SEARCH — short confirmation, max 8 words
+              for NONE — answer conversationally in 1-2 sentences (max 40 words) from general
+              knowledge if possible; if the question requires personal data or real-time info
+              you do not have, acknowledge that briefly and suggest the nearest applicable command
         """.trimIndent()
     }
 
@@ -152,7 +156,7 @@ Rules:
             .put("model", model)
             .put("messages", JSONArray().put(JSONObject().put("role", "user").put("content", prompt)))
             .put("temperature", 0)
-            .put("max_tokens", 120)
+            .put("max_tokens", 256)
 
         val request = Request.Builder()
             .url("$baseUrl/chat/completions")
@@ -181,7 +185,7 @@ Rules:
     private fun callAnthropicApi(baseUrl: String, apiKey: String, model: String, prompt: String): String {
         val body = JSONObject()
             .put("model", model)
-            .put("max_tokens", 150)
+            .put("max_tokens", 256)
             .put("messages", JSONArray().put(JSONObject().put("role", "user").put("content", prompt)))
 
         val request = Request.Builder()

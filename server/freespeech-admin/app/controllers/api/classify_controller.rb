@@ -79,7 +79,7 @@ module Api
         model:       model,
         messages:    [{ role: "user", content: prompt }],
         temperature: 0,
-        max_tokens:  150,
+        max_tokens:  256,
       }.to_json
 
       resp = http.request(req)
@@ -104,7 +104,7 @@ module Api
                "anthropic-version"  => "2023-06-01")
       req.body = {
         model:      model,
-        max_tokens: 150,
+        max_tokens: 256,
         messages:   [{ role: "user", content: prompt }],
       }.to_json
 
@@ -193,12 +193,12 @@ module Api
       ].map { |cat, name| "- #{cat} (#{name}): #{app_labels[cat].presence || "System default"}" }
 
       <<~PROMPT.strip
-        You are an intent classifier for a voice assistant built into a car.
+        You are an intent classifier and voice assistant for a car.
         The user's speech was transcribed by Whisper and may contain recognition errors.
 
         Available categories with their configured apps:
         #{cat_lines.join("\n")}
-        - NONE: command not understood
+        - NONE: the request cannot be mapped to any of the above categories
 
         User said: "#{transcript}"
 
@@ -208,7 +208,11 @@ module Api
         Rules:
         - category  one of MUSIC, WEATHER, NAVIGATION, CALL, WEB_SEARCH, NONE
         - query     extracted subject (artist, destination, contact, search term); empty for WEATHER/CALL
-        - message   confirmation in the user's language, max 8 words; if NONE, say in one sentence what kind of command to use instead
+        - message   spoken text in the user's language:
+                      for MUSIC/WEATHER/NAVIGATION/CALL/WEB_SEARCH — short confirmation, max 8 words
+                      for NONE — answer conversationally in 1-2 sentences (max 40 words) from general
+                      knowledge if possible; if the question requires personal data or real-time info
+                      you do not have, acknowledge that briefly and suggest the nearest applicable command
       PROMPT
     end
   end

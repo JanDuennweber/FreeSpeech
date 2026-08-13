@@ -12,6 +12,9 @@ class ConfigController < ApplicationController
     ai_model
     grammar_correct
     languagetool_url
+    tts_url
+    tts_voice
+    tts_model
     log_jsonl_path
     log_audio_dir
     log_max_entries

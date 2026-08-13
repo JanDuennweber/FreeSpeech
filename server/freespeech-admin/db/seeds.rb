@@ -46,6 +46,10 @@ defaults = {
   "grammar_correct"     => "1",   # correct Ollama/qwen message grammar via LanguageTool
   "languagetool_url"    => "",    # blank = use free public API at api.languagetool.org
 
+  "tts_url"             => "",    # e.g. http://localhost:8880 (Kokoro-FastAPI)
+  "tts_voice"           => "af_heart",
+  "tts_model"           => "kokoro",
+
   "log_jsonl_path"      => "/var/log/freespeech/freespeech_commands.jsonl",
   "log_audio_dir"       => "/var/log/freespeech/audio",
   "log_max_entries"     => "1000",

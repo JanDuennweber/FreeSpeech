@@ -90,6 +90,39 @@
     </div>
   </div>
 
+  <%# ── Text-to-Speech ─────────────────────────────────────────────────────── %>
+  <div class="card">
+    <div class="card-title">🔊 Text-to-Speech (spoken AI responses)</div>
+    <p class="hint" style="margin-bottom:.9rem">
+      When a voice command cannot be handled by an app action (e.g. <em>"What was my last WhatsApp message?"</em>),
+      the AI's response is read aloud through the car speakers.
+      Powered by <a href="https://github.com/remsky/Kokoro-FastAPI" target="_blank">Kokoro-FastAPI</a>
+      (recommended) or any OpenAI-compatible <code>/v1/audio/speech</code> endpoint.
+      <br>Quick start: <code>docker run -p 8880:8880 ghcr.io/remsky/kokoro-fastapi-cpu:v0.2.2</code>
+    </p>
+    <div class="fields-grid">
+      <div class="field">
+        <%= label_tag "settings[tts_url]", "TTS Server URL" %>
+        <%= text_field_tag "settings[tts_url]", @settings["tts_url"],
+              placeholder: "http://localhost:8880  (leave blank to disable TTS)" %>
+        <div class="hint">Root URL of the TTS server — the endpoint <code>/v1/audio/speech</code> is appended automatically.</div>
+      </div>
+      <div class="field">
+        <%= label_tag "settings[tts_voice]", "Speaker Voice" %>
+        <%= select_tag "settings[tts_voice]",
+              options_for_select(Api::TtsController::VOICES.map { |id, label| [label, id] },
+                                 @settings["tts_voice"].presence || "af_heart") %>
+        <div class="hint">Voice used for all spoken responses. Voices are Kokoro identifiers; other TTS servers may use different IDs.</div>
+      </div>
+      <div class="field">
+        <%= label_tag "settings[tts_model]", "TTS Model name" %>
+        <%= text_field_tag "settings[tts_model]", @settings["tts_model"],
+              placeholder: "kokoro" %>
+        <div class="hint">Kokoro: <code>kokoro</code> &nbsp;·&nbsp; Leave blank for server default.</div>
+      </div>
+    </div>
+  </div>
+
   <%# ── Log Server ─────────────────────────────────────────────────────────── %>
   <div class="card">
     <div class="card-title">📄 Command Log (freespeech_log_server.py)</div>
@@ -216,6 +249,7 @@
   <div class="card-title" style="font-size:.85rem">🔌 JSON API</div>
   <p class="hint">
     Android app → server-side AI: <code>POST <a href="/api/classify" target="_blank">/api/classify</a></code> (optional Bearer token)<br>
+    Android app → spoken response: <code>POST /api/tts</code> body: <code>{"text":"…"}</code> → audio/wav<br>
     Live config feed: <a href="/api/config" target="_blank"><code>/api/config</code></a>
     &nbsp;|&nbsp;
     <a href="/api/languages" target="_blank"><code>/api/languages</code></a>

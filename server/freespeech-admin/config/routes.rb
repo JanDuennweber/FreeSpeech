@@ -35,6 +35,7 @@ Rails.application.routes.draw do
   # ── JSON API (public, token-optional) ────────────────────────────────────────
   # classify lives in Api:: namespace; config & languages reuse existing controllers.
   post "/api/classify",   to: "api/classify#create",  as: :api_classify
+  post "/api/tts",        to: "api/tts#create",        as: :api_tts
   get  "/api/config",     to: "config#api",            as: :api_config,
                           defaults: { format: :json }
   get  "/api/languages",  to: "languages#index",       as: :api_languages,
