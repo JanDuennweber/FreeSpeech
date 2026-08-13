@@ -10,6 +10,7 @@ FreeSpeech registers itself as:
 
 - An Android `RecognitionService` — handles keyboard microphone and speech-to-text in any app
 - A `VoiceInteractionService` — handles the system digital assistant (long-press home / power button)
+- An Android Auto **Car App** — appears in the AA launcher on the car screen as a first-class voice input UI
 
 When invoked, FreeSpeech:
 
@@ -38,9 +39,12 @@ E GH.DemandController: Assistant is unavailable due to: 0
 | Invocation method | Works? |
 |---|---|
 | Car display mic button (Android Auto) | ✗ gearhead bypasses VoiceInteractionService |
+| **FreeSpeech app in AA launcher (car screen)** | **✓ full mic UI, auto-starts listening** |
 | Long-press power / home button on phone | ✓ invokes FreeSpeech as digital assistant |
 | Keyboard microphone (any text field) | ✓ invokes FreeSpeech as RecognitionService |
 | Voice input in other apps | ✓ |
+
+The **recommended hands-free path** is via the AA launcher: open FreeSpeech from the car app list, it starts recording immediately, transcribes via Whisper, and shows the result on the car display.
 
 ### Conditions under which the car mic button would work
 
@@ -170,12 +174,23 @@ On the phone:
 
 (Paths may vary slightly by /e/OS version. Look for "Spracheingabe" and "Digitaler Assistent" on German-language systems.)
 
+### 3b. Enable Unknown Sources in Android Auto
+
+This allows sideloaded Car App Library apps (like FreeSpeech) to appear in the AA launcher:
+
+1. Open Android Auto on the phone
+2. Tap the version number **10 times** to unlock developer settings
+3. **Developer settings → Unknown sources → On**
+
+FreeSpeech will then appear in the car screen's app list the next time you connect to the car.
+
 ### 4. Configure the Whisper endpoint
 
 Open the FreeSpeech app, enter your server URL, tap **Save**.
 
 ### 5. Test
 
+- **Car screen (Android Auto)**: open the app list on the car display → tap FreeSpeech → it auto-starts listening
 - **Phone button**: long-press the power or home button — FreeSpeech overlay should appear and start listening
 - **Keyboard mic**: tap the microphone icon in any text field
 
@@ -185,6 +200,7 @@ Android Auto itself (the `gearhead` package) does not come pre-installed on /e/O
 
 ## Roadmap
 
+- [x] Android Auto Car App — FreeSpeech appears in AA launcher with auto-start mic UI
 - [ ] Android Auto car mic button — blocked by gearhead + microG compatibility (see Known limitations)
 - [ ] NLU layer: route transcriptions to contacts (calls), media apps, navigation
 - [ ] WhatsApp message dictation via Accessibility Service

@@ -47,6 +47,24 @@
             android:exported="true"
             android:permission="android.permission.BIND_VOICE_INTERACTION_SERVICE" />
 
+        <!-- Android Auto car app — appears in the AA launcher on the car screen.
+             Category POI is the broadest available; there is no "voice assistant"
+             category in the Car App Library. The HostValidator in the service is
+             set to ALLOW_ALL_HOSTS so sideloaded builds work without certificate
+             pinning. Unknown-sources mode must be enabled once in AA dev settings. -->
+        <service
+            android:name=".FreeSpeechCarAppService"
+            android:exported="true"
+            android:label="@string/app_name">
+            <intent-filter>
+                <action android:name="androidx.car.app.CarAppService" />
+                <category android:name="androidx.car.app.category.POI" />
+            </intent-filter>
+            <meta-data
+                android:name="androidx.car.app.minCarApiLevel"
+                android:value="1" />
+        </service>
+
         <activity
             android:name=".SettingsActivity"
             android:exported="true">
