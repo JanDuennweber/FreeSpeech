@@ -37,12 +37,14 @@ object CommandLogger {
         .build()
 
     /**
-     * @param transcript  Whisper transcript (what the user said)
-     * @param category    Classified intent category
-     * @param query       Extracted subject (artist, destination, …)
-     * @param lang        BCP-47 language tag from Whisper ("de", "en", …)
-     * @param aiEngine    Engine key if AI classification was used; null = keyword matching
-     * @param wav         Raw WAV bytes to archive, or null to skip audio upload
+     * @param transcript    Whisper transcript (what the user said)
+     * @param category      Classified intent category
+     * @param query         Extracted subject (artist, destination, …)
+     * @param lang          BCP-47 language tag from Whisper ("de", "en", …)
+     * @param aiEngine      Engine key if AI classification was used; null = keyword matching
+     * @param wav           Raw WAV bytes to archive, or null to skip audio upload
+     * @param routingChain  For custom topic matches: the ping-pong trail
+     *                      e.g. `"french fries" → Eating → Yelp`; null otherwise
      */
     fun post(
         context: Context,
@@ -52,6 +54,7 @@ object CommandLogger {
         lang: String,
         aiEngine: String?,
         wav: ByteArray? = null,
+        routingChain: String? = null,
     ) {
         val prefs  = context.getSharedPreferences("freespeech", Context.MODE_PRIVATE)
         val logUrl = prefs.getString("log_url", "")?.trim()
@@ -67,7 +70,8 @@ object CommandLogger {
                     put("cat",   category.name)
                     put("query", query)
                     put("lang",  lang)
-                    if (aiEngine != null) put("ai", aiEngine)
+                    if (aiEngine     != null) put("ai",      aiEngine)
+                    if (routingChain != null) put("routing", routingChain)
                 }
 
                 val body = MultipartBody.Builder()

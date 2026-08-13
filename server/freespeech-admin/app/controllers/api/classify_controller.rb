@@ -61,12 +61,29 @@ module Api
         # ── Pong: for custom topics, transform the transcript into the app query ─
         if result[:category] == "CUSTOM" && result[:topic]
           topic      = result.delete(:topic)
-          pong_query = fetch_pong_query(transcript, topic, engine, base_url, api_key, model)
-          result[:query]           = pong_query
-          result[:uri_template]    = topic.uri_template
-          result[:android_package] = topic.android_package.presence
-          result[:app_label]       = topic.app_label
-          result[:message]       ||= "#{topic.app_label}: #{pong_query}"
+          ping_query = result[:query]   # keyword the ping extracted — saved for routing chain
+
+          pong_query       = fetch_pong_query(transcript, topic, engine, base_url, api_key, model)
+          result[:query]   = pong_query
+          result[:app_label] = topic.app_label
+
+          # Target routing: app deep-link OR site-restricted web search
+          if topic.target_type == "web_search"
+            result[:search_urls]     = topic.url_list
+            result[:uri_template]    = nil
+            result[:android_package] = nil
+          else
+            result[:uri_template]    = topic.uri_template
+            result[:android_package] = topic.android_package.presence
+            result[:search_urls]     = nil
+          end
+
+          result[:message] ||= "#{topic.app_label}: #{pong_query}"
+
+          # Routing chain — shows the full ping-pong path in the log:
+          # "french fries" → Eating → Yelp
+          # "tell me a joke" → Jokes → punscorner.com, reddit.com/r/Jokes
+          result[:routing_chain] = "\"#{ping_query}\" → #{topic.name} → #{topic.target_display}"
         end
 
         # Grammar-correct the spoken message when using Ollama.

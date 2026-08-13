@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_08_13_120000) do
+ActiveRecord::Schema[8.1].define(version: 2026_08_13_130000) do
   create_table "custom_topics", force: :cascade do |t|
     t.string "android_package", default: "", null: false
     t.string "app_label", null: false
@@ -18,9 +18,11 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_13_120000) do
     t.string "description", default: "", null: false
     t.string "name", null: false
     t.integer "position", default: 0, null: false
+    t.text "search_urls", default: "", null: false
+    t.string "target_type", default: "app", null: false
     t.string "transform_hint", default: "", null: false
     t.datetime "updated_at", null: false
-    t.string "uri_template", null: false
+    t.string "uri_template", default: ""
     t.index ["name"], name: "index_custom_topics_on_name", unique: true
   end
 

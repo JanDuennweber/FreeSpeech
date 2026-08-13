@@ -158,20 +158,35 @@
 <% end %>
 
 <%# ── Custom Topic → App Mappings ───────────────────────────────────────────── %>
+<style>
+  /* CSS-only target-type toggle — no JavaScript needed.
+     Radio inputs are visually hidden but remain functional.
+     The checked state cascades to siblings via the ~ selector. */
+  .topic-toggle { position:absolute; width:1px; height:1px; opacity:0; pointer-events:none }
+  .topic-type-btns { display:flex; gap:.4rem; margin-bottom:.9rem }
+  .topic-type-btns label {
+    padding:.3rem .9rem; border:1px solid #dee2e6; border-radius:5px;
+    cursor:pointer; font-size:.85rem; user-select:none; transition:background .15s }
+  #tt_app:checked    ~ .topic-type-btns label[for="tt_app"],
+  #tt_web:checked    ~ .topic-type-btns label[for="tt_web"] {
+    background:#0071e3; color:#fff; border-color:#0071e3 }
+  #tt_web:checked    ~ .topic-app-fields { display:none }
+  #tt_app:checked    ~ .topic-web-fields { display:none }
+</style>
+
 <div class="card">
-  <div class="card-title">🗂 Custom Topic → App Mappings</div>
+  <div class="card-title">🗂 Custom Topic → App / Web Mappings</div>
   <p class="hint" style="margin-bottom:.9rem">
-    Extend the voice assistant with flexible topic-to-app mappings using the
-    <strong>ping-pong mechanism</strong>: the AI first detects whether the user's
-    statement relates to a topic (<em>ping</em>), then transforms it into the
-    app-specific search query (<em>pong</em>).
+    Route any conversational topic to an app or a site-restricted web search via the
+    <strong>ping-pong mechanism</strong>.
+    <strong>Ping</strong> — AI detects the topic.
+    <strong>Pong</strong> — AI transforms the statement into a query for the target.
+    The full chain is recorded in the command log.
     <br>
-    Example: <em>"I could really go for french fries"</em> →
-    topic: <strong>Eating</strong> →
-    pong query: <em>"french fries near me"</em> →
-    <code>yelp://search?terms=french+fries+near+me</code>
-    <br>
-    Use <code>{query}</code> as the placeholder in the URI template.
+    App example: <em>"I could go for french fries"</em>
+      → <strong>Eating</strong> → <code>yelp://search?terms=french+fries+near+me</code><br>
+    Web example: <em>"tell me a joke"</em>
+      → <strong>Jokes</strong> → search restricted to <code>punscorner.com</code>
   </p>
 
   <%# Existing topics table %>
@@ -182,8 +197,7 @@
           <tr style="border-bottom:2px solid #dee2e6;text-align:left">
             <th style="padding:.4rem .6rem">Topic (AI key)</th>
             <th style="padding:.4rem .6rem">Description</th>
-            <th style="padding:.4rem .6rem">App</th>
-            <th style="padding:.4rem .6rem">URI Template</th>
+            <th style="padding:.4rem .6rem">Target</th>
             <th style="padding:.4rem .6rem"></th>
           </tr>
         </thead>
@@ -194,22 +208,29 @@
                 <strong><%= t.name %></strong><br>
                 <code style="font-size:.75em;color:#6c757d"><%= t.slug %></code>
               </td>
-              <td style="padding:.5rem .6rem;color:#495057"><%= t.description %></td>
-              <td style="padding:.5rem .6rem">
-                <%= t.app_label %>
-                <% if t.android_package.present? %>
-                  <br><code style="font-size:.72em;color:#6c757d"><%= t.android_package %></code>
+              <td style="padding:.5rem .6rem;color:#495057">
+                <%= t.description %>
+                <% if t.transform_hint.present? %>
+                  <br><span style="font-size:.78em;color:#6c757d;font-style:italic">hint: <%= t.transform_hint %></span>
                 <% end %>
               </td>
               <td style="padding:.5rem .6rem;word-break:break-all">
-                <code style="font-size:.78em"><%= t.uri_template %></code>
-                <% if t.transform_hint.present? %>
-                  <br><span style="font-size:.75em;color:#6c757d;font-style:italic">Hint: <%= t.transform_hint %></span>
+                <% if t.target_type == "web_search" %>
+                  🌐 <strong>Web search</strong> restricted to:<br>
+                  <% t.url_list.each do |u| %>
+                    <code style="font-size:.78em"><%= u %></code><br>
+                  <% end %>
+                <% else %>
+                  📱 <strong><%= t.app_label %></strong>
+                  <% if t.android_package.present? %>
+                    <br><code style="font-size:.72em;color:#6c757d"><%= t.android_package %></code>
+                  <% end %>
+                  <br><code style="font-size:.76em"><%= t.uri_template %></code>
                 <% end %>
               </td>
               <td style="padding:.5rem .6rem;white-space:nowrap">
                 <%= form_with url: custom_topic_path(t), method: :delete, local: true,
-                      data: { confirm: "Remove "#{t.name}"?" } do %>
+                      data: { confirm: "Remove \"#{t.name}\"?" } do %>
                   <button type="submit" class="btn btn-danger" style="padding:.2rem .6rem;font-size:.8rem">✕</button>
                 <% end %>
               </td>
@@ -222,54 +243,83 @@
     <p class="hint" style="margin-bottom:.9rem">No custom topics yet. Add one below.</p>
   <% end %>
 
-  <%# Add topic form %>
+  <%# Add topic form — CSS-only target_type toggle %>
   <%= form_with url: custom_topics_path, method: :post, local: true do |f| %>
     <div style="border-top:1px solid #dee2e6;padding-top:.9rem">
-      <div class="hint" style="margin-bottom:.6rem;font-weight:600">Add a new topic</div>
-      <div class="fields-grid" style="grid-template-columns:repeat(auto-fill,minmax(220px,1fr))">
+      <div class="hint" style="margin-bottom:.5rem;font-weight:600">Add a new topic</div>
+
+      <%# Hidden radio inputs must precede the toggled divs as DOM siblings %>
+      <%= radio_button_tag "custom_topic[target_type]", "app",        true,  id: "tt_app", class: "topic-toggle" %>
+      <%= radio_button_tag "custom_topic[target_type]", "web_search", false, id: "tt_web", class: "topic-toggle" %>
+
+      <div class="topic-type-btns">
+        <label for="tt_app">📱 App (URI deep-link)</label>
+        <label for="tt_web">🌐 Web Search (site: restricted)</label>
+      </div>
+
+      <%# Shared fields %>
+      <div class="fields-grid" style="grid-template-columns:repeat(auto-fill,minmax(220px,1fr));margin-bottom:.5rem">
         <div class="field">
           <%= label_tag "custom_topic[name]", "Topic name *" %>
           <%= text_field_tag "custom_topic[name]", nil, placeholder: "Eating", required: true %>
-          <div class="hint">Short word or phrase. Becomes <code>CUSTOM_NAME</code> in the AI prompt.</div>
+          <div class="hint">Becomes <code>CUSTOM_NAME</code> in the AI prompt.</div>
         </div>
         <div class="field">
           <%= label_tag "custom_topic[description]", "Description for AI *" %>
           <%= text_field_tag "custom_topic[description]", nil,
                 placeholder: "Finding restaurants, food, places to eat", required: true %>
-          <div class="hint">Helps the AI decide when this topic applies. Be specific.</div>
+          <div class="hint">Tells the AI when this topic matches. Be specific.</div>
         </div>
         <div class="field">
-          <%= label_tag "custom_topic[app_label]", "App label *" %>
-          <%= text_field_tag "custom_topic[app_label]", nil, placeholder: "Yelp", required: true %>
+          <%= label_tag "custom_topic[app_label]", "Display label *" %>
+          <%= text_field_tag "custom_topic[app_label]", nil, placeholder: "Yelp" %>
         </div>
+        <div class="field">
+          <%= label_tag "custom_topic[transform_hint]", "Pong hint (optional)" %>
+          <%= text_field_tag "custom_topic[transform_hint]", nil,
+                placeholder: "Phrase as a local restaurant search." %>
+          <div class="hint">Extra instruction to sharpen the query transform.</div>
+        </div>
+      </div>
+
+      <%# App target fields %>
+      <div class="topic-app-fields fields-grid" style="grid-template-columns:repeat(auto-fill,minmax(220px,1fr));margin-bottom:.5rem">
         <div class="field">
           <%= label_tag "custom_topic[android_package]", "Android package (optional)" %>
           <%= text_field_tag "custom_topic[android_package]", nil, placeholder: "com.yelp.android" %>
-          <div class="hint">Preferred app. Leave blank for any URI handler.</div>
+          <div class="hint">Preferred app. Blank = any URI handler.</div>
         </div>
         <div class="field" style="grid-column:span 2">
-          <%= label_tag "custom_topic[uri_template]", "URI template * — use {query} as placeholder" %>
+          <%= label_tag "custom_topic[uri_template]", "URI template — use {query} as placeholder" %>
           <%= text_field_tag "custom_topic[uri_template]", nil,
-                placeholder: "https://www.yelp.com/search?find_desc={query}", required: true,
+                placeholder: "https://www.yelp.com/search?find_desc={query}",
                 style: "font-family:monospace;font-size:.85rem" %>
           <div class="hint">
-            Examples: &nbsp;
             <code>yelp://search?terms={query}</code> &nbsp;·&nbsp;
             <code>geo:0,0?q={query}+restaurant</code> &nbsp;·&nbsp;
             <code>vnd.youtube:///search?q={query}</code> &nbsp;·&nbsp;
             <code>https://www.amazon.com/s?k={query}</code>
           </div>
         </div>
+      </div>
+
+      <%# Web search target fields %>
+      <div class="topic-web-fields fields-grid" style="grid-template-columns:repeat(auto-fill,minmax(220px,1fr));margin-bottom:.5rem">
         <div class="field" style="grid-column:span 2">
-          <%= label_tag "custom_topic[transform_hint]", "Query transform hint (optional)" %>
-          <%= text_field_tag "custom_topic[transform_hint]", nil,
-                placeholder: "Phrase as a local restaurant or food search." %>
-          <div class="hint">Extra instruction for the pong LLM call to improve query quality.</div>
+          <%= label_tag "custom_topic[search_urls]", "Search URLs (1–5, one per line)" %>
+          <%= text_area_tag "custom_topic[search_urls]", nil, rows: 4,
+                placeholder: "punscorner.com\nreddit.com/r/Jokes",
+                style: "font-family:monospace;font-size:.85rem;resize:vertical" %>
+          <div class="hint">
+            Android will search these domains using <code>site:</code> operators.
+            Scheme and trailing slash not needed — just the domain or path.<br>
+            <em>Example query built:</em>
+            <code>dad jokes (site:punscorner.com OR site:reddit.com/r/Jokes)</code>
+          </div>
         </div>
       </div>
-      <div style="margin-top:.75rem">
-        <button type="submit" class="btn btn-primary btn-sm">+ Add Topic</button>
-      </div>
+
+      <button type="submit" class="btn btn-primary btn-sm">+ Add Topic</button>
     </div>
   <% end %>
 </div>

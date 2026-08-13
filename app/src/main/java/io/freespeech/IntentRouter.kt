@@ -51,9 +51,17 @@ data class ClassifiedIntent(
     val category:       VoiceCategory,
     val query:          String,
     val aiMessage:      String? = null,
+    // ── Custom topic fields (null for standard categories) ─────────────────
+    /** URI template with {query} placeholder for app deep-link targets. */
     val uriTemplate:    String? = null,
+    /** Preferred Android package (optional, falls back to any URI handler). */
     val androidPackage: String? = null,
+    /** Human-readable app/site label for display. */
     val appLabel:       String? = null,
+    /** For web-search targets: list of domains to restrict the search to (max 5). */
+    val searchUrls:     List<String>? = null,
+    /** Full ping-pong routing chain for logging: `"keyword" → Topic → Target` */
+    val routingChain:   String? = null,
 )
 
 // ── Router ─────────────────────────────────────────────────────────────────────
@@ -179,15 +187,26 @@ object IntentRouter {
             VoiceCategory.NONE -> null  // not understood — caller shows message only
 
             VoiceCategory.CUSTOM -> {
-                // Build a deep-link intent from the URI template returned by the server.
-                // {query} is replaced with the URL-encoded pong query.
-                val template = classified.uriTemplate ?: return null
-                val uri = Uri.parse(template.replace("{query}", Uri.encode(classified.query)))
-                Intent(Intent.ACTION_VIEW, uri).apply {
-                    // Target the preferred app if specified and installed; otherwise
-                    // let the OS choose any app that handles the URI scheme.
-                    classified.androidPackage?.takeIf { it.isNotBlank() }?.let { setPackage(it) }
-                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                val searchUrls = classified.searchUrls
+                if (!searchUrls.isNullOrEmpty()) {
+                    // Web-search target: build a browser query restricted to the
+                    // configured domains using site: operators.
+                    // 1 domain:  "dad jokes site:punscorner.com"
+                    // 2+ domains: "dad jokes (site:punscorner.com OR site:reddit.com/r/Jokes)"
+                    val siteFilter = if (searchUrls.size == 1) {
+                        "site:${searchUrls[0]}"
+                    } else {
+                        searchUrls.joinToString(" OR ") { "site:$it" }
+                    }
+                    browserIntent("${classified.query} $siteFilter", prefs)
+                } else {
+                    // App deep-link target: fill {query} in the URI template.
+                    val template = classified.uriTemplate ?: return null
+                    val uri = Uri.parse(template.replace("{query}", Uri.encode(classified.query)))
+                    Intent(Intent.ACTION_VIEW, uri).apply {
+                        classified.androidPackage?.takeIf { it.isNotBlank() }?.let { setPackage(it) }
+                        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                    }
                 }
             }
         }

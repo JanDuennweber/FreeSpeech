@@ -136,7 +136,8 @@ class FreeSpeechCarScreen(carContext: CarContext) : Screen(carContext) {
                 val aiEngine = if (classified.aiMessage != null)
                     prefs.getString("ai_engine", AiClassifier.ENGINE_GEMINI) else null
                 CommandLogger.post(appContext, transcript, classified.category,
-                    classified.query, result.language, aiEngine, wav)
+                    classified.query, result.language, aiEngine, wav,
+                    classified.routingChain)
 
                 if (classified.category != VoiceCategory.NONE) {
                     // App-launching command: start the target activity, then reset the screen.

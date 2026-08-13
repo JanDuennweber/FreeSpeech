@@ -52,13 +52,18 @@
           <% @entries.each do |e| %>
             <%
               ts    = h(e["ts"]    || "")
-              cmd   = h(e["cmd"]   || "")
-              cat   = h(e["cat"]   || "?")
-              query = h(e["query"] || "")
-              lang  = h(e["lang"]  || "?")
-              ai    = e["ai"].presence
+              cmd     = h(e["cmd"]     || "")
+              cat     = h(e["cat"]     || "?")
+              query   = h(e["query"]   || "")
+              lang    = h(e["lang"]    || "?")
+              ai      = e["ai"].presence
+              routing = e["routing"].presence   # ping-pong chain: "keyword" → Topic → Target
 
               result_html = query.present? ? "<b>#{cat}</b>: #{query}" : "<b>#{cat}</b>"
+              if routing
+                result_html += "<br><small style='color:#868e96;font-size:.77em;letter-spacing:.01em'>"\
+                               "↳ #{h(routing)}</small>"
+              end
 
               meta_parts  = ["<code>#{lang}</code>"]
               meta_parts << "ai:#{h(ai)}" if ai

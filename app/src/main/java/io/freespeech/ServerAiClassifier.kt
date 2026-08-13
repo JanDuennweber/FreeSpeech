@@ -96,9 +96,14 @@ class ServerAiClassifier(
         val query   = obj.optString("query",    "")
         val message = obj.optString("message",  "").ifBlank { null }
 
-        // Custom topic — server has already run the pong transform and returns
-        // the URI template, optional package, and app label.
+        // Custom topic — server ran the pong transform and returns the full routing info.
         if (catName == "CUSTOM") {
+            // Parse search_urls array (web-search target type)
+            val urlsArr    = obj.optJSONArray("search_urls")
+            val searchUrls = urlsArr?.let { arr ->
+                (0 until arr.length()).map { arr.optString(it) }.filter { it.isNotBlank() }
+            }?.takeIf { it.isNotEmpty() }
+
             return ClassifiedIntent(
                 category       = VoiceCategory.CUSTOM,
                 query          = query,
@@ -106,6 +111,8 @@ class ServerAiClassifier(
                 uriTemplate    = obj.optString("uri_template",    "").ifBlank { null },
                 androidPackage = obj.optString("android_package", "").ifBlank { null },
                 appLabel       = obj.optString("app_label",       "").ifBlank { null },
+                searchUrls     = searchUrls,
+                routingChain   = obj.optString("routing_chain",   "").ifBlank { null },
             )
         }
 
