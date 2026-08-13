@@ -79,11 +79,32 @@ class FreeSpeechCarScreen(carContext: CarContext) : Screen(carContext) {
                 setStatus("Verarbeitung…")
                 val wav = AudioUtils.buildWav(samples, SAMPLE_RATE)
                 // Use applicationContext so SharedPreferences resolve correctly inside CarContext.
-                val transcript = AudioUtils.sendToWhisper(wav, carContext.applicationContext)
+                val appContext = carContext.applicationContext
+                val transcript = AudioUtils.sendToWhisper(wav, appContext)
                 Log.i(TAG, "Transcript: $transcript")
 
-                setStatus(transcript.ifBlank { "(nichts erkannt)" })
-                // After the result is shown, reset to ready state automatically.
+                if (transcript.isBlank()) {
+                    setStatus("(nichts erkannt)")
+                } else {
+                    // Classify intent and route to the configured app.
+                    val prefs      = appContext.getSharedPreferences("freespeech", android.content.Context.MODE_PRIVATE)
+                    val classified = IntentRouter.classify(transcript)
+                    val label      = IntentRouter.routingLabel(classified)
+                    setStatus(label)
+                    Log.i(TAG, "Category: ${classified.category}, query: ${classified.query}")
+
+                    val intent = IntentRouter.buildIntent(classified, prefs)
+                    if (intent != null) {
+                        try {
+                            carContext.startActivity(intent)
+                        } catch (e: Exception) {
+                            Log.e(TAG, "Could not start activity for ${classified.category}", e)
+                            setStatus("App nicht gefunden:\n${e.message}")
+                        }
+                    }
+                }
+
+                // Reset to ready state after displaying the result.
                 mainHandler.postDelayed({
                     status = "Wie kann ich helfen?"
                     invalidate()

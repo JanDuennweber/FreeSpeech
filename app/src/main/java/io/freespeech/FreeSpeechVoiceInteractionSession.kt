@@ -66,10 +66,30 @@ class FreeSpeechVoiceInteractionSession(context: Context) : VoiceInteractionSess
             setStatus("Verarbeitung…")
             val wav = AudioUtils.buildWav(samples, SAMPLE_RATE)
             val transcript = AudioUtils.sendToWhisper(wav, context)
-
             Log.i(TAG, "Transcript: $transcript")
-            setStatus(transcript)
-            mainHandler.postDelayed({ hide() }, 3_000)
+
+            if (transcript.isBlank()) {
+                setStatus("(nichts erkannt)")
+                mainHandler.postDelayed({ hide() }, 2_000)
+            } else {
+                // Classify and show routing label before hiding.
+                val prefs      = context.getSharedPreferences("freespeech", android.content.Context.MODE_PRIVATE)
+                val classified = IntentRouter.classify(transcript)
+                val label      = IntentRouter.routingLabel(classified)
+                setStatus(label)
+                Log.i(TAG, "Category: ${classified.category}, query: ${classified.query}")
+
+                val intent = IntentRouter.buildIntent(classified, prefs)
+                if (intent != null) {
+                    try {
+                        context.startActivity(intent)
+                    } catch (e: Exception) {
+                        Log.e(TAG, "Could not start activity for ${classified.category}", e)
+                        setStatus("App nicht gefunden:\n${e.message}")
+                    }
+                }
+                mainHandler.postDelayed({ hide() }, 2_500)
+            }
         } catch (e: Exception) {
             Log.e(TAG, "Transcription failed", e)
             setStatus("Fehler: ${e.message}")

@@ -1,57 +1,155 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:padding="24dp">
+    android:layout_height="match_parent">
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="FreeSpeech"
-        android:textSize="24sp"
-        android:textStyle="bold"
-        android:layout_marginBottom="4dp" />
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Open-source voice assistant for Android Auto on /e/OS"
-        android:layout_marginBottom="32dp" />
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Whisper API endpoint URL:"
-        android:textStyle="bold"
-        android:layout_marginBottom="8dp" />
-
-    <EditText
-        android:id="@+id/whisper_url"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:inputType="textUri"
-        android:hint="http://your-server:8080/v1/audio/transcriptions"
-        android:layout_marginBottom="8dp" />
+        android:orientation="vertical"
+        android:padding="24dp">
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Point this at any OpenAI-compatible Whisper endpoint (self-hosted faster-whisper, LocalAI, whisper.cpp server, etc.)"
-        android:textSize="12sp"
-        android:layout_marginBottom="24dp" />
+        <!-- ── Header ──────────────────────────────────────────────────────── -->
 
-    <Button
-        android:id="@+id/save_button"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Save"
-        android:layout_marginBottom="32dp" />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="FreeSpeech"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="4dp" />
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="After installing FreeSpeech, go to:\nSettings → Apps → Default apps → Speech recognition\nand select FreeSpeech."
-        android:textSize="12sp" />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Open-source voice assistant for Android Auto on /e/OS"
+            android:layout_marginBottom="32dp" />
 
-</LinearLayout>
+        <!-- ── Whisper endpoint ─────────────────────────────────────────────── -->
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Whisper API endpoint URL:"
+            android:textStyle="bold"
+            android:layout_marginBottom="8dp" />
+
+        <EditText
+            android:id="@+id/whisper_url"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="textUri"
+            android:hint="http://your-server:8080/v1/audio/transcriptions"
+            android:layout_marginBottom="8dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Point this at any OpenAI-compatible Whisper endpoint (self-hosted faster-whisper, LocalAI, whisper.cpp server, etc.)"
+            android:textSize="12sp"
+            android:layout_marginBottom="24dp" />
+
+        <Button
+            android:id="@+id/save_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Speichern"
+            android:layout_marginBottom="32dp" />
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="?android:attr/listDivider"
+            android:layout_marginBottom="24dp" />
+
+        <!-- ── Command routing ──────────────────────────────────────────────── -->
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Sprachbefehle → Apps"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="4dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Wähle, welche App für jeden Befehlstyp geöffnet wird. Nur installierte Apps werden angezeigt."
+            android:textSize="12sp"
+            android:layout_marginBottom="24dp" />
+
+        <!-- Music -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Musik  (z.B. spiel David Bowie)"
+            android:textStyle="bold"
+            android:layout_marginBottom="4dp" />
+        <Spinner
+            android:id="@+id/spinner_music"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="20dp" />
+
+        <!-- Weather -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Wetter  (z.B. wird es heute regnen?)"
+            android:textStyle="bold"
+            android:layout_marginBottom="4dp" />
+        <Spinner
+            android:id="@+id/spinner_weather"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="20dp" />
+
+        <!-- Navigation -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Navigation  (z.B. fahre nach Hamburg)"
+            android:textStyle="bold"
+            android:layout_marginBottom="4dp" />
+        <Spinner
+            android:id="@+id/spinner_nav"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="20dp" />
+
+        <!-- Web search -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Websuche  (alles andere)"
+            android:textStyle="bold"
+            android:layout_marginBottom="4dp" />
+        <Spinner
+            android:id="@+id/spinner_websearch"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="20dp" />
+
+        <!-- Search engine -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Suchmaschine für Websuche:"
+            android:textStyle="bold"
+            android:layout_marginBottom="4dp" />
+        <Spinner
+            android:id="@+id/spinner_searchengine"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="32dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Tipp: Anruf-Befehle öffnen immer das Telefon — keine Konfiguration nötig."
+            android:textSize="12sp"
+            android:layout_marginBottom="8dp" />
+
+    </LinearLayout>
+</ScrollView>
