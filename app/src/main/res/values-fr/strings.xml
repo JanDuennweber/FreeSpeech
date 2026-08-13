@@ -42,6 +42,18 @@
 
     <string name="toast_saved">Enregistré</string>
 
+    <!-- Mot de réveil -->
+    <string name="settings_wake_title">Mot de réveil</string>
+    <string name="settings_wake_desc">Lorsqu\'activé, FreeSpeech écoute en arrière-plan le mot de réveil via votre serveur Whisper. Prononcez-le pour démarrer une commande mains libres.</string>
+    <string name="settings_wake_enable">Activer la détection du mot de réveil (désactivé par défaut)</string>
+    <string name="settings_wake_word_label">Mot de réveil :</string>
+    <string name="settings_wake_word_hint">Free Speech</string>
+    <string name="settings_wake_word_desc">Court et distinctif — 2 syllabes fonctionnent bien. Nécessite l\'URL Whisper configurée. Se déclenche uniquement lorsque l\'écran voiture FreeSpeech est visible.</string>
+    <string name="wake_notification_channel">Mot de réveil</string>
+    <string name="wake_notification_title">FreeSpeech — Mot de réveil actif</string>
+    <string name="wake_notification_text">En attente de \"%1$s\"…</string>
+    <string name="wake_notification_stop">Arrêter</string>
+
     <!-- Moteurs IA -->
     <string name="engine_gemini">Gemini (gratuit, Google)</string>
     <string name="engine_openai">OpenAI / GPT</string>

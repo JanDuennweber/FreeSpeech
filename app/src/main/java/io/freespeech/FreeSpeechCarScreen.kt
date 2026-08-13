@@ -44,9 +44,17 @@ class FreeSpeechCarScreen(carContext: CarContext) : Screen(carContext) {
 
     init {
         // Auto-start recording when the screen becomes visible; stop when it leaves focus.
+        // Also register as the wake-word target so WakeWordService can trigger recording
+        // hands-free when the wake word is detected in the background.
         lifecycle.addObserver(object : DefaultLifecycleObserver {
-            override fun onStart(owner: LifecycleOwner) = startTranscription()
-            override fun onStop(owner: LifecycleOwner)  = cleanup()
+            override fun onStart(owner: LifecycleOwner) {
+                WakeWordService.wakeListener = { startTranscription() }
+                startTranscription()
+            }
+            override fun onStop(owner: LifecycleOwner) {
+                WakeWordService.wakeListener = null
+                cleanup()
+            }
         })
     }
 
@@ -74,6 +82,9 @@ class FreeSpeechCarScreen(carContext: CarContext) : Screen(carContext) {
 
     private fun startTranscription() {
         if (isRecording) return
+        // Signal to WakeWordService that the microphone is now ours.
+        // WakeWordService checks this flag and yields its own AudioRecord.
+        WakeWordService.commandInProgress = true
         val appContext = carContext.applicationContext
         Thread {
             try {
@@ -134,6 +145,10 @@ class FreeSpeechCarScreen(carContext: CarContext) : Screen(carContext) {
                     e.message,
                     appContext.getString(R.string.action_retry)
                 ))
+            } finally {
+                // Release mic ownership so WakeWordService can resume detecting.
+                // Runs on every exit path including mic-unavailable return@Thread.
+                WakeWordService.commandInProgress = false
             }
         }.start()
     }

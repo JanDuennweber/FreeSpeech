@@ -42,6 +42,19 @@
 
     <string name="toast_saved">Saved</string>
 
+    <!-- Wake word section -->
+    <string name="settings_wake_title">Wake Word Detection</string>
+    <string name="settings_wake_desc">When enabled, FreeSpeech listens in the background for the wake word using your Whisper server. Say it to start a command hands-free — without tapping the screen.</string>
+    <string name="settings_wake_enable">Enable wake word detection (disabled by default)</string>
+    <string name="settings_wake_word_label">Wake word:</string>
+    <string name="settings_wake_word_hint">Free Speech</string>
+    <string name="settings_wake_word_desc">Keep it short and distinctive — 2 syllables work well. Requires the Whisper URL to be set. Only triggers when the FreeSpeech car screen is visible.</string>
+    <!-- Foreground service notification -->
+    <string name="wake_notification_channel">Wake Word</string>
+    <string name="wake_notification_title">FreeSpeech — Wake word active</string>
+    <string name="wake_notification_text">Listening for \"%1$s\"…</string>
+    <string name="wake_notification_stop">Stop</string>
+
     <!-- AI engine spinner labels -->
     <string name="engine_gemini">Gemini (free, Google)</string>
     <string name="engine_openai">OpenAI / GPT</string>

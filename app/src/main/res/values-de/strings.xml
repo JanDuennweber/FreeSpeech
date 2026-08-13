@@ -42,6 +42,18 @@
 
     <string name="toast_saved">Gespeichert</string>
 
+    <!-- Aktivierungswort -->
+    <string name="settings_wake_title">Aktivierungswort-Erkennung</string>
+    <string name="settings_wake_desc">Wenn aktiviert, hört FreeSpeech im Hintergrund über deinen Whisper-Server auf das Aktivierungswort. Sprich es aus, um einen Befehl freihändig zu starten.</string>
+    <string name="settings_wake_enable">Aktivierungswort-Erkennung aktivieren (standardmäßig deaktiviert)</string>
+    <string name="settings_wake_word_label">Aktivierungswort:</string>
+    <string name="settings_wake_word_hint">Free Speech</string>
+    <string name="settings_wake_word_desc">Kurz und markant — 2 Silben funktionieren gut. Erfordert eine konfigurierte Whisper-URL. Wird nur ausgelöst, wenn der FreeSpeech-Auto-Bildschirm sichtbar ist.</string>
+    <string name="wake_notification_channel">Aktivierungswort</string>
+    <string name="wake_notification_title">FreeSpeech — Aktivierungswort aktiv</string>
+    <string name="wake_notification_text">Warte auf \"%1$s\"…</string>
+    <string name="wake_notification_stop">Stopp</string>
+
     <!-- KI-Engine-Auswahl -->
     <string name="engine_gemini">Gemini (kostenlos, Google)</string>
     <string name="engine_openai">OpenAI / GPT</string>

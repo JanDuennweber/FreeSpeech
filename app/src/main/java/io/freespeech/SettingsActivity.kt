@@ -74,6 +74,13 @@ class SettingsActivity : AppCompatActivity() {
 
         setupAiSection(prefs)
 
+        // ── Wake word section ──────────────────────────────────────────────────
+
+        val wakeEnabledCheck = findViewById<CheckBox>(R.id.use_wake_word)
+        val wakeWordField    = findViewById<EditText>(R.id.wake_word)
+        wakeEnabledCheck.isChecked = prefs.getBoolean("wake_enabled", false)
+        wakeWordField.setText(prefs.getString("wake_word", getString(R.string.settings_wake_word_hint)))
+
         // ── Save ───────────────────────────────────────────────────────────────
 
         findViewById<Button>(R.id.save_button).setOnClickListener {
@@ -100,7 +107,17 @@ class SettingsActivity : AppCompatActivity() {
                 .putString("ai_base_url", findViewById<EditText>(R.id.ai_base_url).text.toString().trim())
                 .putString("ai_model",   findViewById<EditText>(R.id.ai_model).text.toString().trim())
 
+                // Wake word
+                .putBoolean("wake_enabled", wakeEnabledCheck.isChecked)
+                .putString("wake_word",     wakeWordField.text.toString().trim()
+                    .ifBlank { getString(R.string.settings_wake_word_hint) })
+
             edit.apply()
+
+            // Start or stop the wake word service to match the new setting.
+            if (wakeEnabledCheck.isChecked) WakeWordService.start(this)
+            else                            WakeWordService.stop(this)
+
             Toast.makeText(this, getString(R.string.toast_saved), Toast.LENGTH_SHORT).show()
         }
     }

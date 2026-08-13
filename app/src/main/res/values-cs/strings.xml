@@ -42,6 +42,18 @@
 
     <string name="toast_saved">Uloženo</string>
 
+    <!-- Aktivační slovo -->
+    <string name="settings_wake_title">Aktivační slovo</string>
+    <string name="settings_wake_desc">Při aktivaci FreeSpeech v pozadí naslouchá aktivačnímu slovu přes váš Whisper server. Vyslovte ho pro spuštění příkazu bez dotyku obrazovky.</string>
+    <string name="settings_wake_enable">Povolit rozpoznávání aktivačního slova (ve výchozím nastavení zakázáno)</string>
+    <string name="settings_wake_word_label">Aktivační slovo:</string>
+    <string name="settings_wake_word_hint">Free Speech</string>
+    <string name="settings_wake_word_desc">Krátké a výrazné — 2 slabiky fungují dobře. Vyžaduje nakonfigurovanou URL Whisper. Spouští se pouze tehdy, když je viditelná obrazovka auta FreeSpeech.</string>
+    <string name="wake_notification_channel">Aktivační slovo</string>
+    <string name="wake_notification_title">FreeSpeech — Aktivační slovo aktivní</string>
+    <string name="wake_notification_text">Čekám na \"%1$s\"…</string>
+    <string name="wake_notification_stop">Zastavit</string>
+
     <!-- Moduly AI -->
     <string name="engine_gemini">Gemini (zdarma, Google)</string>
     <string name="engine_openai">OpenAI / GPT</string>

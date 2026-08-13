@@ -42,6 +42,18 @@
 
     <string name="toast_saved">Guardado</string>
 
+    <!-- Palabra de activación -->
+    <string name="settings_wake_title">Palabra de activación</string>
+    <string name="settings_wake_desc">Cuando está activado, FreeSpeech escucha en segundo plano la palabra de activación a través de tu servidor Whisper. Dila para iniciar un comando sin tocar la pantalla.</string>
+    <string name="settings_wake_enable">Activar detección de palabra de activación (deshabilitado por defecto)</string>
+    <string name="settings_wake_word_label">Palabra de activación:</string>
+    <string name="settings_wake_word_hint">Free Speech</string>
+    <string name="settings_wake_word_desc">Corta y distintiva — 2 sílabas funcionan bien. Requiere la URL de Whisper configurada. Solo se activa cuando la pantalla del coche de FreeSpeech es visible.</string>
+    <string name="wake_notification_channel">Palabra de activación</string>
+    <string name="wake_notification_title">FreeSpeech — Palabra de activación activa</string>
+    <string name="wake_notification_text">Esperando \"%1$s\"…</string>
+    <string name="wake_notification_stop">Parar</string>
+
     <!-- Motores de IA -->
     <string name="engine_gemini">Gemini (gratuito, Google)</string>
     <string name="engine_openai">OpenAI / GPT</string>
