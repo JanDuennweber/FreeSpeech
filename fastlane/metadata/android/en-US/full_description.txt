@@ -1,0 +1,34 @@
+FreeSpeech is an open-source AI voice assistant for Android Auto designed for privacy-respecting Android ROMs — Murena /e/OS, GrapheneOS, CalyxOS, LineageOS — where Google Assistant is absent and the car microphone button shows "speech commands are currently not supported".
+
+FreeSpeech fills that gap without sending your voice to Google. All processing runs on your own self-hosted servers.
+
+<b>How it works</b>
+
+1. Tap the FreeSpeech icon on the Android Auto car screen (or say the wake word)
+2. Speak your command — a voice-activity detector stops recording on silence
+3. Your audio is transcribed by your Whisper server (self-hosted, on your hardware)
+4. An LLM (Ollama/Qwen locally, or Gemini/OpenAI/Anthropic via API) classifies your intent
+5. FreeSpeech opens the right app or speaks a TTS answer through the car speakers
+
+<b>Supported commands</b>
+
+• Music — opens Tidal, Spotify, YouTube Music with your search
+• Navigation — opens Google Maps, OsmAnd, Here WeGo
+• Phone calls — opens the dialler
+• Weather, web search — opens your preferred apps
+• Custom topics — map any phrase to any app or site-restricted search
+• RAG documents — answer questions from your own PDFs or EPUBs (travel guides, manuals, …)
+• Conversational — informational answers spoken via TTS through the car speaker (ducks music)
+
+<b>Privacy</b>
+
+• No data leaves your network — Whisper, the LLM, and TTS all run on your own hardware
+• No Google account, no Google Assistant, no Play Services required
+• Audio recordings are kept locally for debugging and can be disabled
+
+<b>Requirements</b>
+
+• A self-hosted Whisper server (faster-whisper, whisper.cpp, or compatible)
+• A self-hosted LLM via Ollama, or an API key for Gemini / OpenAI / Anthropic
+• The FreeSpeech Console (Rails backend — included in the GitHub repository)
+• Android Auto (wireless or USB)

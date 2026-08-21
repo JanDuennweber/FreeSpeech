@@ -1,0 +1,51 @@
+# F-Droid build recipe for FreeSpeech
+#
+# To submit: fork https://gitlab.com/fdroid/fdroiddata, copy this file to
+# metadata/io.freespeech.yml (stripping this comment block), and open a MR.
+#
+# F-Droid submission checklist:
+#   https://f-droid.org/docs/Submitting_to_F-Droid_Quick_Start_Guide/
+
+Categories:
+  - Navigation
+  - Internet
+
+License: Apache-2.0
+
+SourceCode: https://github.com/JanDuennweber/FreeSpeech
+IssueTracker: https://github.com/JanDuennweber/FreeSpeech/issues
+
+AutoName: FreeSpeech
+
+Summary: Open-source AI voice assistant for Android Auto on de-Googled Android
+
+Description: |-
+  FreeSpeech gives users of privacy-respecting Android ROMs (Murena /e/OS,
+  GrapheneOS, CalyxOS, LineageOS) a working voice assistant for Android Auto
+  without Google Assistant or any Google dependency.
+
+  Speak a command — FreeSpeech transcribes it via your self-hosted Whisper
+  server, classifies your intent with an LLM (Ollama locally or Gemini/
+  OpenAI/Anthropic via API), and opens the right app or speaks an answer
+  through the car speaker using Kokoro-FastAPI TTS.
+
+  Supported intents: music, navigation, calls, weather, web search, custom
+  topic routing, RAG document Q&A (PDF/EPUB), and conversational TTS answers.
+
+  All processing runs on your own hardware — no data leaves your network.
+
+RepoType: git
+Repo: https://github.com/JanDuennweber/FreeSpeech
+
+Builds:
+  - versionName: '0.1'
+    versionCode: 1
+    commit: v0.1
+    subdir: app
+    gradle:
+      - yes
+
+AutoUpdateMode: Version v%v
+UpdateCheckMode: Tags
+CurrentVersion: '0.1'
+CurrentVersionCode: 1

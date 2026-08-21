@@ -1,0 +1,13 @@
+Initial release.
+
+• Android Auto car screen with voice-activity-detected recording
+• Whisper transcription (self-hosted)
+• LLM intent classification — Ollama, Gemini, OpenAI, Anthropic
+• Music, Navigation, Call, Weather, Web Search intents
+• Custom topic ping-pong (keyword → app or site search)
+• RAG document library (PDF/EPUB upload, keyword routing)
+• Kokoro-FastAPI TTS spoken responses through car speaker
+• Wake word detection (background, hands-free)
+• LanguageTool grammar correction for Ollama responses
+• Command history and audio log in FreeSpeech Console
+• Multi-user support with role-based access
