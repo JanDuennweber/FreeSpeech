@@ -20,6 +20,8 @@ captures/
 # Keystore
 *.jks
 *.keystore
+keystore.properties
+keytool.sh
 
 # OS
 .DS_Store
